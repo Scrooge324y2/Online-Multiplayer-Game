@@ -2,13 +2,14 @@
 <html>
 <head>
   <meta charset="UTF-8">
-  <title>WebSocket Platformer</title>
+  <title>game</title>
   <style>
-    canvas { background: #ddd; display: block; margin: auto; }
+    html, body {margin: 0; padding: 0; height: 100%;}
+    canvas { background: #ddd; display: block; width: 100vw; height: 100vh; }
   </style>
 </head>
 <body>
-  <canvas id="gameCanvas" width="640" height="320"></canvas>
+  <canvas id="gameCanvas"></canvas>
   <script src="https://cdn.socket.io/4.3.2/socket.io.min.js"></script>
   <script src="/static/game.js"></script>
 </body>

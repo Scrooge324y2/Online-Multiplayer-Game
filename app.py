@@ -12,9 +12,8 @@ def game():
 @socketio.on('connect')
 def on_connect():
     print('Client connected')
-    # Send the initial game map to the client
     game_map = generate_map()
     emit('map', {'map': game_map})
 
 if __name__ == '__main__':
-    socketio.run(app, debug=True)
+    socketio.run(app, debug=True, allow_unsafe_werkzeug=True)
