@@ -1,5 +1,5 @@
-WIDTH = 20
-HEIGHT = 10
+WIDTH = 80
+HEIGHT = 45
 
 def generate_map():
     chunk = []
@@ -12,3 +12,4 @@ def generate_map():
                 col.append(0)  # air
         chunk.append(col)
     return chunk
+
