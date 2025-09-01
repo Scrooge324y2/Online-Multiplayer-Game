@@ -1,15 +1,16 @@
-WIDTH = 80
-HEIGHT = 45
 
-def generate_map():
-    chunk = []
-    for x in range(WIDTH):
-        col = []
-        for y in range(HEIGHT):
-            if y == HEIGHT - 1:
-                col.append(1)  # ground
-            else:
-                col.append(0)  # air
-        chunk.append(col)
+def generate_chunk(width=20, height=15):
+    import random
+    # Generate a chunk of the map with ground at the bottom
+    chunk = [[0 for x in range(width)] for y in range(height)]
+
+    # Fill the bottom row with ground blocks
+    for x in range(width):
+        chunk[height-1][x] = 1
+
+    chunk[random.randint(0,height-1)][random.randint(0,width-1)] = 1
+
+
+
     return chunk
 
