@@ -40,19 +40,23 @@ function preload() {
 
 function create() {
     platforms = this.physics.add.staticGroup();
+    this.chunksLoaded = false;
 
     socket.on('map', (data) => {
         chunkWidth = data.map[0].length; // get the width of the chunk from the first row
         //tileSize = 800 / chunkWidth
         drawChunk(this, data.map, chunkOffset)
         chunkOffset++;
+        this.offset = chunkOffset;
+        this.chunksLoaded = true;
+
 
         const worldWidth = chunkOffset * chunkWidth * tileSize;
         this.physics.world.setBounds(0, 0, worldWidth, height);
         this.cameras.main.setBounds(0, 0, worldWidth, height);
     });
 
-    socket.emit('requestChunk');
+    socket.emit('requestChunk', this.offset);
     player = this.add.rectangle(100, 450, 40, 40, 0xff0000);
     this.physics.add.existing(player);
     player.body.setCollideWorldBounds(true); // prevent player from going out of bounds
@@ -64,6 +68,7 @@ function create() {
 }
 
 function update(time, delta) {
+    if (!this.chunksLoaded) return; // Wait until at least one chunk is loaded
     this.cameras.main.scrollX += 100 * (delta / 1000); // auto-scroll the camera to the right
     if (!player) return; // Ensure player exists before updating
 
@@ -81,7 +86,9 @@ function update(time, delta) {
         player.body.setVelocityY(-330);
     }
     if (player.x > (chunkOffset - 2) * chunkWidth * tileSize) { // if player is near the right edge of the current chunk
-        socket.emit('requestChunk');
+        socket.emit('requestChunk', this.offset);
+        this.offset++
+        console.log("offset:" , this.offset)
     }
 
 }

@@ -17,8 +17,9 @@ def on_connect():
     emit('map', {'map': chunk})
 
 @socketio.on('requestChunk')
-def send_chunk():
-    chunk = generate_chunk()
+def send_chunk(offset):
+    print(offset)
+    chunk = generate_chunk(offset=int(offset))
     print('sending chunk')
     emit('map', {'map': chunk})
 
