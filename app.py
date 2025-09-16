@@ -1,5 +1,6 @@
 from flask import Flask, render_template
 from flask_socketio import SocketIO, emit
+from flask_sqlalchemy import SQLAlchemy
 from game.logic import generate_chunk
 
 app = Flask(__name__)
@@ -8,6 +9,8 @@ socketio = SocketIO(app, cors_allowed_origins='*')
 @app.route('/')
 def game():
     return render_template('game.html')
+
+@app.route('/login')
 
 
 @socketio.on('connect')
