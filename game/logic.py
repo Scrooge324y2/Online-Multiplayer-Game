@@ -1,5 +1,4 @@
-from flask import Flask, render_template
-from flask_socketio import SocketIO, emit
+
 
 def generate_terrain(chunkWidth=20, tileSize=40, offset=0):
     from opensimplex import OpenSimplex

@@ -86,7 +86,7 @@ function update(time, delta) {
         player.body.setVelocityY(-330);
     }
     if (player.x > (chunkOffset - 2) * chunkWidth * tileSize) { // if player is near the right edge of the current chunk
-        socket.emit('requestChunk', this.offset);
+        socket.emit('requestChunk', parseInt(this.offset));
         this.offset++
         console.log("offset:" , this.offset)
     }
