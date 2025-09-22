@@ -1,12 +1,12 @@
-from flask import Flask, render_template
+from flask import Flask, render_template, request, redirect, url_for, session
 from flask_socketio import SocketIO
-
-
-
+from flask_sqlalchemy import SQLAlchemy
 app = Flask(__name__)
+app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///test.db'
+app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 socketio = SocketIO(app, cors_allowed_origins='*')
 
-
+users={}
 from game.sockets import register_socket_events
 register_socket_events(socketio)
 @app.route('/')
@@ -15,7 +15,25 @@ def game():
 
 @app.route('/login')
 def login():
+    if request.method == 'POST':
+        username = request.form['username']
+        password = request.form['password']
+
+        if username in users and password in users[username]:
+            session['username'] = username
+            return redirect(url_for('game'))
     return render_template("login.html")
+
+@app.route('/register', methods=['GET', 'POST'])
+def register():
+    if request.method == 'POST':
+        username = request.form['username']
+        password = request.form['password']
+        users[username] = password
+        return redirect(url_for('login'))
+    return render_template("register.html")
+
+
 
 
 
