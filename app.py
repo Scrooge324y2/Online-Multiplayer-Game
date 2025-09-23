@@ -1,10 +1,11 @@
 from flask import Flask, render_template, request, redirect, url_for, session
 from flask_socketio import SocketIO
-from flask_sqlalchemy import SQLAlchemy
+from database import Database
+
 app = Flask(__name__)
-app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///test.db'
-app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 socketio = SocketIO(app, cors_allowed_origins='*')
+
+
 
 users={}
 from game.sockets import register_socket_events

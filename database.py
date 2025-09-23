@@ -1,4 +1,5 @@
 import sqlite3
+import bycrypt
 class Database:
     def __init__(self, db_path="game.db"):
         self.db_path = db_path
@@ -24,3 +25,12 @@ class Database:
                 user_id INTEGER,
                 FOREIGN KEY (user_id) REFERENCES users(user_id))""")
             conn.commit()
+    def add_login_details(self, username, password):
+        with self.connect() as conn:
+            bytes = password.encode('utf-8')
+            salt = bycrypt.gensalt()
+            hash = bycrypt.gensalt()
+            hash = bycrypt.hashpw(bytes, salt)
+            cursor = conn.cursor()
+            cursor.execute(f"""
+                INSERT """)
