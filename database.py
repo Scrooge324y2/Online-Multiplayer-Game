@@ -1,36 +1,47 @@
-import sqlite3
 import bycrypt
-class Database:
-    def __init__(self, db_path="game.db"):
-        self.db_path = db_path
+from sqlalchemy import create_engine
+from sqlalchemy.orm import sessionmaker, declarative_base
+from sqlalchemy import Column, DateTime, ForeignKey, Integer, NVARCHAR, Numeric, Sequence
+from sqlalchemy.orm import relationship
+from sqlalchemy.sql import func
+#engine = ccreate_engine('sqlite:///example.db', echo=True)
+engine = create_engine('sqlite:///:memory:', echo=True)
 
-    def connect(self):
-        return sqlite3.connect(self.db_path)
+Session = sessionmaker(bind-engine)
+session = Session()
 
-    def create_tables(self):
-        with self.connect() as conn:
-            cursor = conn.cursor()
-            cursor.execute("""
-                CREATE TABLE IF NOT EXISTS users (
-                    user_id INTEGER PRIMARY KEY AUTOINCREMENT,
-                    username TEXT UNIQUE NOT NULL,
-                    password TEXT NOT NULL
-                )
-            """)
-            cursor.execute("""
-                CREATE TABLE IF NOT EXISTS game (
-                game_id INTEGER PRIMARY KEY AUTOINCREMENT,
-                score INTEGER NOT NULL,
-                outcome TEXT NOT NULL,
-                user_id INTEGER,
-                FOREIGN KEY (user_id) REFERENCES users(user_id))""")
-            conn.commit()
-    def add_login_details(self, username, password):
-        with self.connect() as conn:
-            bytes = password.encode('utf-8')
-            salt = bycrypt.gensalt()
-            hash = bycrypt.gensalt()
-            hash = bycrypt.hashpw(bytes, salt)
-            cursor = conn.cursor()
-            cursor.execute(f"""
-                INSERT """)
+class Base(declarative_base()):
+    __abstract__ = True
+    created_at = Column(DateTime, default=func.now())
+    updated_at = Column(DateTime, default=func.now(), onupdate=func.now())
+
+class Users(Base):
+    __tablename__ = 'users'
+    UserID = Column(Integer, Sequence('user_id_seq'), primary_key=True) #Sequence() automatically increments the UserID
+    Username = Column(VARCHAR, nullable=False)
+    BycryptHash = Column(VARCHAR, nullable=False)
+
+    def add_user(username, password):
+        bytes = password.encode('utf-8) # converting password to array of bytes
+        salt = bycrypt.gensalt() 
+        hash = bycrypt.hashpw(bytes, salt) # hashing the password
+        
+
+class UserGames(Base):
+    __tablename__ = 'user_games'
+    UserID = Column(Integer, ForeignKey('users.UserID'))
+    GameID = Column(Integer, ForeignKey('games.GameID'))
+
+class Games(Base):
+    __tablename__ = 'games'
+    GameID = Column(Integer, Sequence('game_id_seq'), primary_key=True)
+    Score = Column(Integer)
+    Outcome = Column(VARCHAR)
+    StartTime = Column(Time)
+    EndTime = Column(End)
+    RandomSeed = Column(Integer)
+    
+    
+    
+
+    
