@@ -4,7 +4,7 @@ from sqlalchemy.orm import sessionmaker, declarative_base
 from sqlalchemy import Column, DateTime, ForeignKey, Integer, NVARCHAR, Numeric, Sequence
 from sqlalchemy.orm import relationship
 from sqlalchemy.sql import func
-#engine = ccreate_engine('sqlite:///example.db', echo=True)
+#engine = create_engine('sqlite:///database.db', echo=True)
 engine = create_engine('sqlite:///:memory:', echo=True)
 
 Session = sessionmaker(bind-engine)
