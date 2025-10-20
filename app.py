@@ -3,6 +3,7 @@ from flask_socketio import SocketIO
 from database import Users
 
 app = Flask(__name__)
+app.secret_key = 'sadfsad'
 socketio = SocketIO(app, cors_allowed_origins='*')
 
 
@@ -35,7 +36,8 @@ def register():
     if request.method == 'POST':
         username = request.form['username']
         password = request.form['password']
-        if Users.validate_username(username):
+        print(username, password)
+        if not Users.validate_username(username):
             return render_template("register.html", error="Username already in use")
         Users.add_user(username, password)
         return redirect(url_for('login'))
