@@ -8,9 +8,14 @@
     <h1>Register</h1>
     <form method="POST" action="/register">
         <label for="username">Username:</label>
-        <input type="text" id="username" name="username" required><br><br>
+        <input type="text" id="username" name="username" pattern = required><br><br>
+        {% if error %}
+          <div class="error">{{ error }}</div>
+        {% endif %}
         <label for="password">Password:</label>
-        <input type="password" id="password" name="password" required><br><br>
+        <input type="password" id="password" name="password" pattern="(?=.*\d)(?=.*[a-z])(?=.*[A-Z]).{8,16} required><br><br>
+          pattern="(?=.*\d)(?=.*[a-z])(?=.*[A-Z])(?=.*[!@#$%^&*]).{8,16}" required>
+        <p>Password must be 8-16 characters and include at least one uppercase letter, one lowercase letter, one digit, and one special character (!@#$%^&*).</p>
         <button type="submit">Register</button>
     </form>
     <p>Already have an account? <a href="/login">Login here</a>.</p>
