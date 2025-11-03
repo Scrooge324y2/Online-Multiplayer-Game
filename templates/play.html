@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Play</title>
+</head>
+<body>
+  <h1>Choose How to Play</h1>
+
+  <!-- Create Game -->
+  <p><a href="/create_game">Create Game (Get Code)</a></p>
+
+  <!-- Join Game -->
+  <form method="POST" action="/join_game">
+    <label for="game_code">Enter Game Code:</label>
+    <input type="text" id="game_code" name="game_code" required>
+    <button type="submit">Join Game</button>
+  </form>
+
+  <!-- Matchmaking -->
+  <p><a href="/matchmaking">Find Opponent (Online Matchmaking)</a></p>
+
+  <p><a href="/menu">Back to Menu</a></p>
+</body>
+</html>

@@ -2,23 +2,27 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>register</title>
+    <title>Register</title>
 </head>
 <body>
     <h1>Register</h1>
     <form method="POST" action="/register">
         <label for="username">Username:</label>
-        <input type="text" id="username" name="username" pattern = required><br><br>
+        <input type="text" id="username" name="username" pattern="[A-Za-z0-9_]{3,20}" required><br><br>
+
         {% if error %}
           <div class="error">{{ error }}</div>
         {% endif %}
+
         <label for="password">Password:</label>
-        <input type="password" id="password" name="password" pattern="(?=.*\d)(?=.*[a-z])(?=.*[A-Z]).{8,16} required><br><br>
-          pattern="(?=.*\d)(?=.*[a-z])(?=.*[A-Z])(?=.*[!@#$%^&*]).{8,16}" required>
+        <input type="password" id="password" name="password"
+               pattern="^(?=.*[0-9])(?=.*[a-z])(?=.*[A-Z])(?=.*[!@#$%^&*]).{8,16}$"
+               required><br><br>
+
         <p>Password must be 8-16 characters and include at least one uppercase letter, one lowercase letter, one digit, and one special character (!@#$%^&*).</p>
         <button type="submit">Register</button>
     </form>
-    <p>Already have an account? <a href="/login">Login here</a>.</p>
 
+    <p>Already have an account? <a href="/login">Login here</a>.</p>
 </body>
 </html>

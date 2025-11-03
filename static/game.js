@@ -26,6 +26,7 @@ const config = {
 let game = new Phaser.Game(config); //creates the game using the config settings
 
 let player;
+let otherPlayer;
 let platforms;
 let cursors;
 let chunkOffset = 0; //Number of chunks loaded
@@ -41,6 +42,7 @@ function preload() {
 function create() {
     platforms = this.physics.add.staticGroup();
     this.chunksLoaded = false;
+    this.offset = 0;
 
     socket.on('map', (data) => {
         chunkWidth = data.map[0].length; // get the width of the chunk from the first row
@@ -57,13 +59,42 @@ function create() {
     });
 
     socket.emit('requestChunk', this.offset);
+
     player = this.add.rectangle(100, 450, 40, 40, 0xff0000);
     this.physics.add.existing(player);
     player.body.setCollideWorldBounds(true); // prevent player from going out of bounds
-
     this.physics.add.collider(player, platforms); //collide player with platforms
 
     cursors = this.input.keyboard.createCursorKeys(); // arrow keys for movement
+
+
+    socket.on('startGame', (data) => {
+        console.log('Game Started', data);
+        const myPlayer = data.players.find(p => p.id === socket.id);
+        const other = data.players.find(p => p.id !== socket.id);
+
+        console.log('I am:', myPlayer);
+        console.log('Opponent is:', other);
+    });
+
+    socket.on('gameFull', () => { //Room full - reject new player
+        alert('Game is full. Please try again later.');
+    });
+
+    socket.on('playerMoved', (data) => {
+        // Handle other player's movement
+        if (!otherPlayer) { //creates other player if it doesn't exist
+            otherPlayer = this.add.rectangle(data.x, data.y, 40, 40, 0x0000ff);
+            this.physics.add.existing(otherPlayer);
+            otherPlayer.body.setCollideWorldBounds(true);
+            this.physics.add.collider(otherPlayer, platforms);
+        } else {
+            otherPlayer.x = data.x;
+            otherPlayer.y = data.y;
+        }
+    })
+
+
 
 }
 
@@ -85,11 +116,14 @@ function update(time, delta) {
     if (cursors.up.isDown && player.body.touching.down) { //if up key is pressed and player is touching the ground
         player.body.setVelocityY(-330);
     }
+    // Request new chunk if player is near the right edge of the current chunk
     if (player.x > (chunkOffset - 2) * chunkWidth * tileSize) { // if player is near the right edge of the current chunk
         socket.emit('requestChunk', parseInt(this.offset));
         this.offset++
         console.log("offset:" , this.offset)
     }
+    socket.emit('playerMovement', { x: player.x, y: player.y }); //send player position to server
+
 
 }
 
