@@ -75,9 +75,7 @@ def generate_code():
 def create_game():
     sid = request.sid
     code = generate_code()
-    
-
-    return "<h1>create game page</h1>"
+    return render_template('create_game.html', code=code)
 
 @app.route("/join_game", methods=["POST"])
 def join_game():
