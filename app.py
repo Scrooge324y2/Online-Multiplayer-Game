@@ -1,14 +1,13 @@
 from flask import Flask, render_template, request, redirect, url_for, session
 from flask_socketio import SocketIO
 from database import Users
+import random
 
 app = Flask(__name__)
 app.secret_key = 'sadfsad'
 socketio = SocketIO(app, cors_allowed_origins='*')
 
 
-
-users={}
 from game.sockets import register_socket_events
 register_socket_events(socketio)
 
@@ -68,10 +67,15 @@ def play():
         #return redirect(url_for("login"))
     return render_template("play.html")
 
+def generate_code():
+    return ''.join(random.choices(string.ascii_uppercase, k=4)) #Generates a random code of 4 uppercase letters
+
 
 @app.route("/create_game")
 def create_game():
-
+    sid = request.sid
+    code = generate_code()
+    
 
     return "<h1>create game page</h1>"
 
