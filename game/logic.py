@@ -12,8 +12,8 @@ def generate_terrain(chunkWidth=20, tileSize=40, offset=0):
         height = int(n * 5) #Number of tiles high
         platforms.append(height)
     return platforms
-
-'''def generate_chunk(width=20, height=15, offset=0):
+'''
+def generate_chunk(width=20, height=15, offset=0):
     chunk = [[0 for x in range(width)] for y in range(height)]
 
     for x in range(width):

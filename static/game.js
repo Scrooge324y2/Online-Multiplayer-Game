@@ -77,9 +77,9 @@ function create() {
         console.log('Opponent is:', other);
     });
 
-    socket.on('gameFull', () => { //Room full - reject new player
-        alert('Game is full. Please try again later.');
-    });
+   // socket.on('gameFull', () => { //Room full - reject new player
+        //alert('Game is full. Please try again later.');
+    //});
 
     socket.on('playerMoved', (data) => {
         // Handle other player's movement
@@ -93,7 +93,6 @@ function create() {
             otherPlayer.y = data.y;
         }
     })
-
 
 
 }

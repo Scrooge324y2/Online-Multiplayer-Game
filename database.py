@@ -11,7 +11,7 @@ Session = sessionmaker(bind=engine)
 session = Session()
 
 
-class Users(Base):
+class User(Base):
     __tablename__ = 'users'
     UserID = Column(Integer, Sequence('user_id_seq'), primary_key=True) #Sequence() automatically increments the UserID
     Username = Column(VARCHAR, nullable=False)
@@ -23,20 +23,20 @@ class Users(Base):
         passwordBytes = password.encode('utf-8') # converting password to array of bytes
         salt = bcrypt.gensalt()
         hashedPw = bcrypt.hashpw(passwordBytes, salt).decode('utf-8') # hashing the password
-        user = Users(Username=username, BcryptHash=hashedPw)
+        user = User(Username=username, BcryptHash=hashedPw)
         session.add(user)
         session.commit()
 
     @staticmethod
     def validate_username(username): #checks if a specific username exists in the database (usernames are unique)
-        stmt = select(Users).where(Users.Username == username)
+        stmt = select(User).where(User.Username == username)
         result = session.execute(stmt).first()
         return result is None
 
     @staticmethod
     def authenticate_user(usernameEntered, passwordEntered):
         bytesPw = passwordEntered.encode('utf-8') # converting password to array of bytes
-        result = session.execute(select(Users.BcryptHash).where(Users.Username == usernameEntered)).first()
+        result = session.execute(select(User.BcryptHash).where(User.Username == usernameEntered)).first()
         if result:
             stored_hash = result[0].encode('utf-8')
             return bcrypt.checkpw(bytesPw, stored_hash)
@@ -44,12 +44,12 @@ class Users(Base):
         
      
 
-class UserGames(Base):
+class UserGame(Base):
     __tablename__ = 'user_games'
     UserID = Column(Integer, ForeignKey('users.UserID'), primary_key=True)
     GameID = Column(Integer, ForeignKey('games.GameID'), primary_key=True)
 
-class Games(Base):
+class Game(Base):
     __tablename__ = 'games'
     GameID = Column(Integer, Sequence('game_id_seq'), primary_key=True)
     Score = Column(Integer)

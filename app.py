@@ -1,7 +1,8 @@
 from flask import Flask, render_template, request, redirect, url_for, session
 from flask_socketio import SocketIO
-from database import Users
+from database import User
 import random
+import string
 
 app = Flask(__name__)
 app.secret_key = 'sadfsad'
@@ -12,18 +13,20 @@ from game.sockets import register_socket_events
 register_socket_events(socketio)
 
 @app.route('/')
+@app.route('/game')
 def game():
     #if 'username' not in session:
         #return redirect(url_for('login'))
     return render_template('game.html')
 
+#@app.route('/')
 @app.route('/login', methods=['GET', 'POST'])
 def login():
     if request.method == 'POST':
         username = request.form['username']
         password = request.form['password']
 
-        if Users.authenticate_user(username, password):
+        if User.authenticate_user(username, password):
             session['username'] = username #creates session for the user
             return redirect(url_for('menu'))
         else:
@@ -36,9 +39,9 @@ def register():
         username = request.form['username']
         password = request.form['password']
         print(username, password)
-        if not Users.validate_username(username):
+        if not User.validate_username(username):
             return render_template("register.html", error="Username already in use")
-        Users.add_user(username, password)
+        User.add_user(username, password)
         return redirect(url_for('login'))
     return render_template("register.html")
 
@@ -50,11 +53,11 @@ def menu():
 
 @app.route("/leaderboard")
 def leaderboard():
-    return "<h1>Leaderboard Coming Soon!</h1>"
+    return "<h1>Leaderboard</h1>"
 
 @app.route("/settings")
 def settings():
-    return "<h1>Settings Page Coming Soon!</h1>"
+    return "<h1>Settings</h1>"
 
 @app.route("/logout")
 def logout():
@@ -73,7 +76,7 @@ def generate_code():
 
 @app.route("/create_game")
 def create_game():
-    sid = request.sid
+    #sid = request.sid
     code = generate_code()
     return render_template('create_game.html', code=code)
 
