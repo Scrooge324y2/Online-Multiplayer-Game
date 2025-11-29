@@ -1,51 +1,74 @@
-from flask import request
-from flask_socketio import emit
+import code
+
+from flask import request, session
+from flask_socketio import emit, join_room
 
 from game.game_manager import GameManager
 from game.logic import generate_chunk
 
 
 
-def register_socket_events(socketio):
-    game = GameManager()
+def register_socket_events(socketio, games):
+    print(f"sockets, games: {games}")
 
     @socketio.on('connect')
     def on_connect():
-        sid = request.sid
-        #game.add_player(sid)
-        print(f'Client connected: {sid}')
+        print(f'Client connected: {request.sid}')
 
-        if not game.add_player(sid):
-            emit('gameFull')
-            return
 
-        chunk = game.get_chunk(0)
-        emit('map', {'map': chunk})
 
-        if game.all_players_ready():# and not game.game_started:
-            game.game_started = True
-            print('players: ' , game.get_players())
-            socketio.emit('startGame', {'players': game.get_players()})
+    @socketio.on('joinGame')
+    def join_game(data):
+        code = data['code']
+
+        if code not in games:
+           games[code] = GameManager()
+
+        session['game_code'] = code
+
+        game = games[code]
+        game.add_player(request.sid)
+
+        print(len(game.players))
+        join_room(code)
+
+        if len(game.players) == 2:
+            print("all players ready")
+            socketio.emit("startGame", {'players':game.get_players()}, room=code)
+
+
+
 
     @socketio.on('requestChunk')
     def on_request_chunk(offset):
-        chunk = game.get_chunk(offset=int(offset))
+        code = session.get('game_code')
+        if not code or code not in games:
+            return
+        chunk = games[code].get_chunk(offset=int(offset))
         emit('map', {'map': chunk})
 
 
     @socketio.on('playerMovement')
     def on_player_movement(data):
         sid = request.sid
+        code = session.get('game_code')
+
+        if not code or code not in games:
+            return
+
+        game = games[code]
         updated = game.update_position(sid, data.get('x',0), data.get('y',0))
         if updated:
-            for pid in game.players:
-                if pid != sid:
-                    socketio.emit('playerMoved', updated, to=pid) #send only to the socket whose ID equal pid
+            socketio.emit('playerMoved', updated, room=code)
 
     @socketio.on('disconnect')
     def on_disconnect():
+        code = session.get('game_code')
+        if not code or code not in games:
+            return
+        game = games[code]
         sid = request.sid
         print(f'Client disconnected: {sid}')
         game.remove_player(sid)
-        socketio.emit('playerDisconnected', {'id': sid})
+        socketio.emit('playerDisconnected', {'id': sid}, room=code)
 

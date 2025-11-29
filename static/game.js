@@ -69,17 +69,20 @@ function create() {
 
 
     socket.on('startGame', (data) => {
-        console.log('Game Started', data);
-        const myPlayer = data.players.find(p => p.id === socket.id);
+        const myPlayer = data.players.find(p => p.id === socket.id); //finds player with corresponding socket id
         const other = data.players.find(p => p.id !== socket.id);
 
-        console.log('I am:', myPlayer);
-        console.log('Opponent is:', other);
-    });
+        // Set up my position
+        player.x = myPlayer.x;
+        player.y = myPlayer.y;
 
-   // socket.on('gameFull', () => { //Room full - reject new player
-        //alert('Game is full. Please try again later.');
-    //});
+        // Create opponent
+        otherPlayer = this.add.rectangle(other.x, other.y, 40, 40, 0x0000ff);
+        this.physics.add.existing(otherPlayer);
+        otherPlayer.body.setCollideWorldBounds(true);
+        this.physics.add.collider(otherPlayer, platforms);
+});
+
 
     socket.on('playerMoved', (data) => {
         // Handle other player's movement
@@ -119,7 +122,6 @@ function update(time, delta) {
     if (player.x > (chunkOffset - 2) * chunkWidth * tileSize) { // if player is near the right edge of the current chunk
         socket.emit('requestChunk', parseInt(this.offset));
         this.offset++
-        console.log("offset:" , this.offset)
     }
     socket.emit('playerMovement', { x: player.x, y: player.y }); //send player position to server
 
@@ -128,7 +130,6 @@ function update(time, delta) {
 
 //loops through mapData, wherever value is 1, create a square platform
 function drawChunk(scene, chunk, offset) {
-    console.log(chunk)
     for (let y = 0; y< chunk.length; y++) { //loops through chunk array
         for (let x = 0; x < chunk[y].length; x++) {
             if (chunk[y][x] === 1){

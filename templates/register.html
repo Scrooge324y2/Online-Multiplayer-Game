@@ -16,8 +16,8 @@
 
         <label for="password">Password:</label>
         <input type="password" id="password" name="password"
-               pattern="^(?=.*[0-9])(?=.*[a-z])(?=.*[A-Z])(?=.*[!@#$%^&*_]).{8,16}$"
-               required><br><br>
+       pattern="(?=.*[0-9])(?=.*[a-z])(?=.*[A-Z])(?=.*[!@#$%^&*_]).{8,16}"
+       required>
 
         <p>Password must be 8-16 characters and include at least one uppercase letter, one lowercase letter, one digit, and one special character (!@#$%^&*_).</p>
         <button type="submit">Register</button>

@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Joining Game</title>
+    <!--<script src="/socket.io/socket.io.js"></script>-->
+    <script src="https://cdn.socket.io/4.7.2/socket.io.min.js"></script>
+<script>
+const socket = io();
+
+const gameCode = "{{ session['game_code'] }}"; //get code from session variable
+socket.on("connect", () => {
+    console.log("Connected to server");
+    socket.emit("joinGame", { code: gameCode }); //tell the server which room to join
+
+});
+
+socket.on("startGame", () => {
+    window.location.href = "/game"; //redirect to game page when game starts
+});
+</script>
+</head>
+<body>
+    <h1>Game code: {{ code }}</h1>
+    <h1>Waiting for other player...</h1>
+
+
+</body>
+</html>

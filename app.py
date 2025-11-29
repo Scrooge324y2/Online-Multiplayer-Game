@@ -3,23 +3,26 @@ from flask_socketio import SocketIO
 from database import User
 import random
 import string
+from game.game_manager import GameManager
 
 app = Flask(__name__)
 app.secret_key = 'sadfsad'
-socketio = SocketIO(app, cors_allowed_origins='*')
+socketio = SocketIO(app, cors_allowed_origins='*', manage_session=True)
 
-
+games = {}
 from game.sockets import register_socket_events
-register_socket_events(socketio)
+register_socket_events(socketio, games)
 
-@app.route('/')
+#@app.route('/')
 @app.route('/game')
 def game():
     #if 'username' not in session:
         #return redirect(url_for('login'))
+    if "game_code" not in session:
+        return redirect(url_for("play"))
     return render_template('game.html')
 
-#@app.route('/')
+@app.route('/')
 @app.route('/login', methods=['GET', 'POST'])
 def login():
     if request.method == 'POST':
@@ -64,6 +67,7 @@ def logout():
     session.pop("username", None)
     return redirect(url_for("login"))
 
+#@app.route("/")
 @app.route("/play")
 def play():
     #if "username" not in session:
@@ -76,14 +80,25 @@ def generate_code():
 
 @app.route("/create_game")
 def create_game():
-    #sid = request.sid
     code = generate_code()
-    return render_template('create_game.html', code=code)
+    new_game = GameManager()
+    games[code] = new_game
+    print(f"games: {games}")
+    session["game_code"] = code
+    return redirect(url_for("waiting_room"), code=code)
 
 @app.route("/join_game", methods=["POST"])
 def join_game():
-    code = request.form["game_code"]
-    return f"<h1>Joining Game with Code: {code}</h1>"
+    code = request.form["game_code"].strip().upper()
+    session['game_code'] = code
+    return redirect(url_for("waiting_room"), code=code)
+
+
+@app.route("/waiting_room")
+def waiting_room():
+    if "game_code" not in session:
+        return redirect(url_for("play"))
+    return render_template("waiting_room.html", code=session["game_code"])
 
 @app.route("/matchmaking")
 def matchmaking():
@@ -92,6 +107,6 @@ def matchmaking():
 
 
 if __name__ == '__main__':
-    socketio.run(app, debug=True, allow_unsafe_werkzeug=True, port=5000)
+    socketio.run(app, debug=True, port=5000)
 
 
