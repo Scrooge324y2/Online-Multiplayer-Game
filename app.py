@@ -81,7 +81,7 @@ def generate_code():
 @app.route("/create_game")
 def create_game():
     code = generate_code()
-    new_game = GameManager()
+    new_game = GameManager(code)
     games[code] = new_game
     print(f"games: {games}")
     session["game_code"] = code

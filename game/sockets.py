@@ -31,10 +31,20 @@ def register_socket_events(socketio, games):
 
         print(len(game.players))
         join_room(code)
+        print(f'game code: {game.room_code}, players: {game.players}')
 
-        if len(game.players) == 2:
+        if game.all_players_ready():
             print("all players ready")
+            players = socketio.server.manager.rooms["/"].get(code, set())
+            print(f'game code: {game.room_code}, players: {game.players}')
             socketio.emit("startGame", {'players':game.get_players()}, room=code)
+
+    @socketio.on('rejoinRoom')
+    def rejoin_room():
+        code = session.get("game_code")
+        if code:
+            join_room(code)
+            print(request.sid, "rejoined room", code)
 
 
 
@@ -57,9 +67,10 @@ def register_socket_events(socketio, games):
             return
 
         game = games[code]
-        updated = game.update_position(sid, data.get('x',0), data.get('y',0))
-        if updated:
-            socketio.emit('playerMoved', updated, room=code)
+        updatedPos = game.update_position(sid, data.get('x',0), data.get('y',0)) #gets the current position of the player from the frontend
+        #print(f"current state: {game.players}")
+        if updatedPos:
+            socketio.emit('playerMoved', updatedPos, room=code)
 
     @socketio.on('disconnect')
     def on_disconnect():

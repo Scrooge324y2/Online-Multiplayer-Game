@@ -40,6 +40,10 @@ function preload() {
 }
 
 function create() {
+        socket.on("connect", () => {
+        socket.emit("rejoinRoom");
+    });
+
     platforms = this.physics.add.staticGroup();
     this.chunksLoaded = false;
     this.offset = 0;
@@ -69,6 +73,7 @@ function create() {
 
 
     socket.on('startGame', (data) => {
+        console.log()
         const myPlayer = data.players.find(p => p.id === socket.id); //finds player with corresponding socket id
         const other = data.players.find(p => p.id !== socket.id);
 
@@ -84,6 +89,10 @@ function create() {
 });
 
 
+
+}
+
+function update(time, delta) {
     socket.on('playerMoved', (data) => {
         // Handle other player's movement
         if (!otherPlayer) { //creates other player if it doesn't exist
@@ -97,10 +106,6 @@ function create() {
         }
     })
 
-
-}
-
-function update(time, delta) {
     if (!this.chunksLoaded) return; // Wait until at least one chunk is loaded
     this.cameras.main.scrollX += 100 * (delta / 1000); // auto-scroll the camera to the right
     if (!player) return; // Ensure player exists before updating

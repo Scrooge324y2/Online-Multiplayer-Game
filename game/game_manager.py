@@ -1,11 +1,12 @@
 from game.logic import generate_chunk
 
 class GameManager:
-    def __init__(self):
+    def __init__(self,code):
         self.max_players = 2
         self.players = {}
         self.game_started = False
         self.chunk_cache = []
+        self.room_code = code
 
     def add_player(self, sid):
         if len(self.players) >= self.max_players:
