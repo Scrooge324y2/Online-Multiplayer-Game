@@ -3,27 +3,30 @@
 <head>
     <meta charset="UTF-8">
     <title>Joining Game</title>
-    <!--<script src="/socket.io/socket.io.js"></script>-->
     <script src="https://cdn.socket.io/4.7.2/socket.io.min.js"></script>
-<script>
-const socket = io();
-
-const gameCode = "{{ session['game_code'] }}"; //get code from session variable
-socket.on("connect", () => {
-    console.log("Connected to server");
-    socket.emit("joinGame", { code: gameCode }); //tell the server which room to join
-
-});
-
-socket.on("startGame", () => {
-    window.location.href = "/game"; //redirect to game page when game starts
-});
-</script>
 </head>
 <body>
-    <h1>Game code: {{ code }}</h1>
-    <h1>Waiting for other player...</h1>
+    <h1>Game Code: <span class="game-code">{{ code }}</span></h1>
+    <h2 class="loading">Waiting for other player...</h2>
 
+    <script>
+        const socket = io("http://127.0.0.1:5000", {
+            withCredentials: true
+        });
 
+        socket.on("connect", () => {
+            console.log("Connected to waiting room, socket ID:", socket.id);
+            socket.emit("joinGame", { code: "{{ code }}" });
+        });
+
+        socket.on("startGame", (data) => {
+            console.log("Game starting with players:", data.players);
+            window.location.href = "/game?code={{ code }}";
+        });
+
+        socket.on("connect_error", (error) => {
+            console.error("Connection error:", error);
+        });
+    </script>
 </body>
 </html>

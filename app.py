@@ -7,7 +7,11 @@ from game.game_manager import GameManager
 
 app = Flask(__name__)
 app.secret_key = 'sadfsad'
-socketio = SocketIO(app, cors_allowed_origins='*', manage_session=True)
+socketio = SocketIO(
+    app,
+    cors_allowed_origins="http://127.0.0.1:5000",
+    manage_session=True,
+)
 
 games = {}
 from game.sockets import register_socket_events
@@ -103,6 +107,7 @@ def waiting_room():
 @app.route("/matchmaking")
 def matchmaking():
     return "<h1>matchmaking page</h1>"
+
 
 
 

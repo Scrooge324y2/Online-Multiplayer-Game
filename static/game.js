@@ -1,10 +1,10 @@
-const socket = io();
-
+// Global socket reference
+let gameSocket = null;
 
 const config = {
     type: Phaser.AUTO,
-    width: 800, // game width
-    height: 600, // game height
+    width: 800,
+    height: 600,
     scale: {
         mode: Phaser.Scale.FIT,
         autoCenter: Phaser.Scale.CENTER_BOTH
@@ -12,7 +12,7 @@ const config = {
     physics: {
         default: 'arcade',
         arcade: {
-            gravity: {y: 500 },
+            gravity: { y: 500 },
             debug: false
         }
     },
@@ -23,93 +23,195 @@ const config = {
     }
 };
 
-let game = new Phaser.Game(config); //creates the game using the config settings
+let game = new Phaser.Game(config);
 
 let player;
 let otherPlayer;
 let platforms;
 let cursors;
-let chunkOffset = 0; //Number of chunks loaded
+let chunkOffset = 0;
 let chunkWidth = 20;
 const tileSize = 40;
 const height = 600;
-
+let mySocketId = null;
+let sceneContext = null;
 
 function preload() {
-
 }
 
 function create() {
-        socket.on("connect", () => {
-        socket.emit("rejoinRoom");
+    sceneContext = this;
+
+    // Create socket connection
+    gameSocket = io("http://127.0.0.1:5000", {
+        withCredentials: true,
+        transports: ['websocket', 'polling']
+    });
+
+    gameSocket.on("connect", () => {
+        console.log("\n=== GAME PAGE SOCKET CONNECTED ===");
+        console.log("New Socket ID:", gameSocket.id);
+        mySocketId = gameSocket.id;
+        console.log("Emitting rejoinRoom...");
+        console.log("===================================\n");
+
+        // Rejoin the game room
+        gameSocket.emit("rejoinRoom");
+
+        // Also request the first chunk
+        setTimeout(() => {
+            console.log("Requesting initial chunk...");
+            gameSocket.emit('requestChunk', 0);
+        }, 200);
+    });
+
+    gameSocket.on("connect_error", (error) => {
+        console.error("Connection error:", error);
+    });
+
+    gameSocket.on("disconnect", () => {
+        console.log("Socket disconnected!");
     });
 
     platforms = this.physics.add.staticGroup();
     this.chunksLoaded = false;
     this.offset = 0;
 
-    socket.on('map', (data) => {
-        chunkWidth = data.map[0].length; // get the width of the chunk from the first row
-        //tileSize = 800 / chunkWidth
-        drawChunk(this, data.map, chunkOffset)
+    // Handle map chunks
+    gameSocket.on('map', (data) => {
+        console.log("✓ Received map chunk");
+        chunkWidth = data.map[0].length;
+        drawChunk(sceneContext, data.map, chunkOffset);
         chunkOffset++;
-        this.offset = chunkOffset;
-        this.chunksLoaded = true;
-
+        sceneContext.offset = chunkOffset;
+        sceneContext.chunksLoaded = true;
 
         const worldWidth = chunkOffset * chunkWidth * tileSize;
-        this.physics.world.setBounds(0, 0, worldWidth, height);
-        this.cameras.main.setBounds(0, 0, worldWidth, height);
+        sceneContext.physics.world.setBounds(0, 0, worldWidth, height);
+        sceneContext.cameras.main.setBounds(0, 0, worldWidth, height);
     });
 
-    socket.emit('requestChunk', this.offset);
-
+    // Create my player (red square)
     player = this.add.rectangle(100, 450, 40, 40, 0xff0000);
     this.physics.add.existing(player);
-    player.body.setCollideWorldBounds(true); // prevent player from going out of bounds
-    this.physics.add.collider(player, platforms); //collide player with platforms
+    player.body.setCollideWorldBounds(true);
+    this.physics.add.collider(player, platforms);
+    console.log("✓ Created RED player (me) at 100, 450");
 
-    cursors = this.input.keyboard.createCursorKeys(); // arrow keys for movement
+    cursors = this.input.keyboard.createCursorKeys();
 
+    // Handle game start
+    gameSocket.on('startGame', (data) => {
+        console.log("\n========== START GAME EVENT ==========");
+        console.log("My Socket ID:", mySocketId);
+        console.log("Players in game:", JSON.stringify(data.players, null, 2));
 
-    socket.on('startGame', (data) => {
-        console.log()
-        const myPlayer = data.players.find(p => p.id === socket.id); //finds player with corresponding socket id
-        const other = data.players.find(p => p.id !== socket.id);
+        // Find my player data
+        const myPlayer = data.players.find(p => p.id === mySocketId);
+        const other = data.players.find(p => p.id !== mySocketId);
 
-        // Set up my position
-        player.x = myPlayer.x;
-        player.y = myPlayer.y;
-
-        // Create opponent
-        otherPlayer = this.add.rectangle(other.x, other.y, 40, 40, 0x0000ff);
-        this.physics.add.existing(otherPlayer);
-        otherPlayer.body.setCollideWorldBounds(true);
-        this.physics.add.collider(otherPlayer, platforms);
-});
-
-
-
-}
-
-function update(time, delta) {
-    socket.on('playerMoved', (data) => {
-        // Handle other player's movement
-        if (!otherPlayer) { //creates other player if it doesn't exist
-            otherPlayer = this.add.rectangle(data.x, data.y, 40, 40, 0x0000ff);
-            this.physics.add.existing(otherPlayer);
-            otherPlayer.body.setCollideWorldBounds(true);
-            this.physics.add.collider(otherPlayer, platforms);
+        if (myPlayer) {
+            console.log(" Found my player data:", myPlayer);
+            player.x = myPlayer.x;
+            player.y = myPlayer.y;
         } else {
+            console.warn("✗ Could not find my player in data!");
+        }
+
+        // Create the other player (blue square)
+        if (other) {
+            console.log(" Found other player:", other);
+            console.log(" Creating BLUE square at:", other.x, other.y);
+
+            if (otherPlayer) {
+                console.log("Destroying existing otherPlayer...");
+                otherPlayer.destroy();
+            }
+
+            otherPlayer = sceneContext.add.rectangle(other.x, other.y, 40, 40, 0x0000ff);
+            sceneContext.physics.add.existing(otherPlayer);
+            otherPlayer.body.setCollideWorldBounds(true);
+            sceneContext.physics.add.collider(otherPlayer, platforms);
+
+            console.log(" BLUE player created successfully");
+        } else {
+            console.warn(" No other player found!");
+            console.warn("Total players:", data.players.length);
+        }
+        console.log("======================================\n");
+    });
+
+    // Handle other player movement
+    gameSocket.on('playerMoved', (data) => {
+        // Always log first 10 movements
+        if (!gameSocket.moveCount) gameSocket.moveCount = 0;
+        gameSocket.moveCount++;
+
+        if (gameSocket.moveCount <= 10) {
+            console.log("\n========== PLAYER MOVED EVENT #" + gameSocket.moveCount + " ==========");
+            console.log("My Socket ID:", mySocketId);
+            console.log("Moving Player ID:", data.id);
+            console.log("Position:", data.x, data.y);
+            console.log("Is this me?", data.id === mySocketId);
+            console.log("otherPlayer exists?", otherPlayer !== null && otherPlayer !== undefined);
+        }
+
+        // Double check this isn't our own movement
+        if (data.id === mySocketId) {
+            if (gameSocket.moveCount <= 10) {
+                console.log(" This is MY movement - IGNORING");
+                console.log("========================================\n");
+            }
+            return;
+        }
+
+        if (gameSocket.moveCount <= 10) {
+            console.log(" This is OTHER player's movement - UPDATING");
+        }
+
+        // Create or update other player
+        if (!otherPlayer) {
+            console.log(" CREATING BLUE player from movement event!");
+            otherPlayer = sceneContext.add.rectangle(data.x, data.y, 40, 40, 0x0000ff);
+            sceneContext.physics.add.existing(otherPlayer);
+            otherPlayer.body.setCollideWorldBounds(true);
+            sceneContext.physics.add.collider(otherPlayer, platforms);
+            console.log(" BLUE player CREATED!");
+        } else {
+            if (gameSocket.moveCount <= 10) {
+                console.log(" Updating position:", data.x, data.y);
+            }
             otherPlayer.x = data.x;
             otherPlayer.y = data.y;
         }
-    })
 
-    if (!this.chunksLoaded) return; // Wait until at least one chunk is loaded
-    this.cameras.main.scrollX += 100 * (delta / 1000); // auto-scroll the camera to the right
-    if (!player) return; // Ensure player exists before updating
+        if (gameSocket.moveCount <= 10) {
+            console.log("========================================\n");
+        }
+    });
 
+    gameSocket.on('playerDisconnected', (data) => {
+        console.log("\n=== PLAYER DISCONNECTED ===");
+        console.log("Disconnected player ID:", data.id);
+        if (otherPlayer && data.id !== mySocketId) {
+            otherPlayer.destroy();
+            otherPlayer = null;
+            console.log("Removed other player");
+        }
+        console.log("===========================\n");
+    });
+
+    // Store socket reference
+    this.gameSocket = gameSocket;
+    this.movementLogCounter = 0;
+}
+
+function update(time, delta) {
+    if (!sceneContext.chunksLoaded) return;
+    sceneContext.cameras.main.scrollX += 100 * (delta / 1000);
+    if (!player) return;
+
+    // Handle player movement
     if (cursors.left.isDown) {
         player.body.setVelocityX(-60);
     }
@@ -120,29 +222,42 @@ function update(time, delta) {
         player.body.setVelocityX(100);
     }
 
-    if (cursors.up.isDown && player.body.touching.down) { //if up key is pressed and player is touching the ground
+    if (cursors.up.isDown && player.body.touching.down) {
         player.body.setVelocityY(-330);
     }
-    // Request new chunk if player is near the right edge of the current chunk
-    if (player.x > (chunkOffset - 2) * chunkWidth * tileSize) { // if player is near the right edge of the current chunk
-        socket.emit('requestChunk', parseInt(this.offset));
-        this.offset++
+
+    // Request new chunks
+    if (player.x > (chunkOffset - 2) * chunkWidth * tileSize) {
+        gameSocket.emit('requestChunk', parseInt(sceneContext.offset));
+        sceneContext.offset++;
     }
-    socket.emit('playerMovement', { x: player.x, y: player.y }); //send player position to server
 
+    // Send my position to server
+    if (gameSocket && gameSocket.connected) {
+        gameSocket.emit('playerMovement', { x: player.x, y: player.y });
 
+        // Log occasionally
+        sceneContext.movementLogCounter++;
+        if (sceneContext.movementLogCounter === 1 || sceneContext.movementLogCounter % 120 === 0) {
+            console.log(" Sending my position:", Math.round(player.x), Math.round(player.y));
+        }
+    }
 }
 
-//loops through mapData, wherever value is 1, create a square platform
 function drawChunk(scene, chunk, offset) {
-    for (let y = 0; y< chunk.length; y++) { //loops through chunk array
+    for (let y = 0; y < chunk.length; y++) {
         for (let x = 0; x < chunk[y].length; x++) {
-            if (chunk[y][x] === 1){
-                let plat = scene.add.rectangle((x + offset * chunk[y].length) * tileSize + tileSize / 2, y*tileSize + tileSize / 2, tileSize, tileSize, 0x00ff00);
-                scene.physics.add.existing(plat, true); // make the platform a physics object
-                platforms.add(plat); // add the platform to the static group
+            if (chunk[y][x] === 1) {
+                let plat = scene.add.rectangle(
+                    (x + offset * chunk[y].length) * tileSize + tileSize / 2,
+                    y * tileSize + tileSize / 2,
+                    tileSize,
+                    tileSize,
+                    0x00ff00
+                );
+                scene.physics.add.existing(plat, true);
+                platforms.add(plat);
             }
         }
     }
-
 }
