@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Leaderboard</title>
+
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background: #f4f4f4;
+            padding: 40px;
+        }
+
+        h1 {
+            text-align: center;
+        }
+
+        .leaderboard-container {
+            max-width: 600px;
+            margin: auto;
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 0 15px rgba(0,0,0,0.1);
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 15px;
+        }
+
+        th, td {
+            padding: 12px;
+            text-align: left;
+            border-bottom: 1px solid #ddd;
+        }
+
+        th {
+            background: #333;
+            color: white;
+        }
+
+        tr:hover {
+            background: #f1f1f1;
+        }
+
+        .rank {
+            width: 50px;
+            text-align: center;
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="leaderboard-container">
+        <h1>Game Leaderboard</h1>
+
+        <table>
+            <tr>
+                <th class="rank">#</th>
+                <th>Username</th>
+                <th>Games Won</th>
+            </tr>
+
+            {% for username, wins in scores.items()|sort(attribute='1', reverse=True) %}
+            <tr>
+                <td class="rank">{{ loop.index }}</td>
+                <td>{{ username }}</td>
+                <td>{{ wins }}</td>
+            </tr>
+            {% endfor %}
+        </table>
+    </div>
+
+</body>
+</html>

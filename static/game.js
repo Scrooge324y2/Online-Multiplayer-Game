@@ -79,7 +79,7 @@ function create() {
 
     // Handle map chunks
     gameSocket.on('map', (data) => {
-        console.log("✓ Received map chunk");
+        console.log("Received map chunk");
         chunkWidth = data.map[0].length;
         drawChunk(sceneContext, data.map, chunkOffset);
         chunkOffset++;
@@ -96,7 +96,7 @@ function create() {
     this.physics.add.existing(player);
     player.body.setCollideWorldBounds(true);
     this.physics.add.collider(player, platforms);
-    console.log("✓ Created RED player (me) at 100, 450");
+    console.log("Created RED player (me) at 100, 450");
 
     cursors = this.input.keyboard.createCursorKeys();
 

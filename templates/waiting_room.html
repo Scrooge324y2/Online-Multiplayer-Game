@@ -21,6 +21,7 @@
 
         socket.on("startGame", (data) => {
             console.log("Game starting with players:", data.players);
+            history.replaceState(null, "", "/play");
             window.location.href = "/game?code={{ code }}";
         });
 

@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Matchmaking</title>
+    <script src="https://cdn.socket.io/4.7.2/socket.io.min.js"></script>
+</head>
+<body>
+    <div class="container">
+        <h1>Finding Match</h1>
+        <div class="spinner">⏳</div>
+        <div class="status" id="status">Connecting to matchmaking...</div>
+        <div class="queue-info" id="queue-info" style="display: none;">
+            <p>Players in queue: <span id="queue-size">-</span></p>
+        </div>
+        <button onclick="cancelMatchmaking()">Cancel</button>
+    </div>
+
+    <script>
+        const socket = io("http://127.0.0.1:5000", {
+            withCredentials: true
+        });
+
+        let matchFound = false;
+
+        socket.on("connect", () => {
+            console.log("Connected to server");
+            document.getElementById("status").textContent = "Searching for opponent...";
+            socket.emit("joinMatchmaking", {});
+        });
+
+        socket.on("queueJoined", (data) => {
+            console.log("Joined queue:", data);
+            document.getElementById("status").textContent = data.message;
+            document.getElementById("queue-info").style.display = "block";
+            document.getElementById("queue-size").textContent = data.position;
+        });
+
+        socket.on("matchFound", (data) => {
+            console.log("Match found!", data);
+            document.getElementById("status").textContent = "Match found! Connecting...";
+
+            // Store the game code for redirection
+            window.gameCode = data.code;
+            matchFound = true;
+
+            // Now emit joinGame with the code to join the room
+            socket.emit("joinGame", { code: data.code });
+        });
+
+        socket.on("startGame", (data) => {
+            console.log("Game starting with players:", data.players);
+            history.replaceState(null, "", "/play");
+            window.location.href = `/game?code=${window.gameCode}`;
+        });
+
+        socket.on("queueLeft", (data) => {
+            console.log("Left queue:", data);
+            window.location.href = "/play";
+        });
+
+        function cancelMatchmaking() {
+            socket.emit("leaveMatchmaking");
+            console.log("Left queue:", data);
+            window.location.href = "/play";
+        }
+
+        // Handle page unload
+        window.addEventListener("beforeunload", () => {
+            if (!matchFound) {
+                socket.emit("leaveMatchmaking");
+            }
+        });
+    </script>
+</body>
+</html>

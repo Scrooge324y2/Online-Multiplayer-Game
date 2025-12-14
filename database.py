@@ -18,7 +18,7 @@ class User(Base):
     BcryptHash = Column(VARCHAR, nullable=False)
                         
 
-    @staticmethod
+    @staticmethod #doesn't require an instance of the class to be called
     def add_user(username, password):
         passwordBytes = password.encode('utf-8') # converting password to array of bytes
         salt = bcrypt.gensalt()
@@ -49,14 +49,27 @@ class UserGame(Base):
     UserID = Column(Integer, ForeignKey('users.UserID'), primary_key=True)
     GameID = Column(Integer, ForeignKey('games.GameID'), primary_key=True)
 
+    @staticmethod
+    def add_user_game(user_id, game_id):
+        user_game = UserGame(UserID=user_id, GameID=game_id)
+        session.add(user_game)
+        session.commit()
+
 class Game(Base):
     __tablename__ = 'games'
     GameID = Column(Integer, Sequence('game_id_seq'), primary_key=True)
     Score = Column(Integer)
-    Outcome = Column(VARCHAR)
+    WinnerID = Column(Integer)
     StartTime = Column(DateTime)
     EndTime = Column(DateTime)
     RandomSeed = Column(Integer)
+
+    @staticmethod
+    def add_game(self, score, winnerID, start_time, end_time, random_seed):
+        game = Game(Score=score, WinnerID=winnerID, StartTime=start_time, EndTime=end_time, RandomSeed=random_seed)
+        session.add(game)
+        session.commit()
+
 
 Base.metadata.create_all(engine)
     

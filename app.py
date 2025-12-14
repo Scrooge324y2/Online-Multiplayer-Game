@@ -4,6 +4,7 @@ from database import User
 import random
 import string
 from game.game_manager import GameManager
+from game.matchmaking import MatchmakingQueue
 
 app = Flask(__name__)
 app.secret_key = 'sadfsad'
@@ -15,15 +16,26 @@ socketio = SocketIO(
 
 games = {}
 from game.sockets import register_socket_events
-register_socket_events(socketio, games)
+register_socket_events(socketio, games, MatchmakingQueue())
 
 #@app.route('/')
 @app.route('/game')
 def game():
     #if 'username' not in session:
         #return redirect(url_for('login'))
-    if "game_code" not in session:
+    '''if "game_code" not in session:
         return redirect(url_for("play"))
+    return render_template('game.html')'''
+    code = request.args.get('code') or session.get('game_code')
+
+    if not code:
+        return redirect(url_for("play"))
+
+    # Store in session if it came from URL
+    if 'game_code' not in session:
+        session['game_code'] = code
+        session.modified = True
+
     return render_template('game.html')
 
 @app.route('/')
@@ -79,7 +91,10 @@ def play():
     return render_template("play.html")
 
 def generate_code():
-    return ''.join(random.choices(string.ascii_uppercase, k=4)) #Generates a random code of 4 uppercase letters
+    code = ''.join(random.choices(string.ascii_uppercase, k=4)) #Generates a random code of 4 uppercase letters
+    if code in games:
+        return generate_code()
+    return code
 
 
 @app.route("/create_game")
@@ -89,13 +104,13 @@ def create_game():
     games[code] = new_game
     print(f"games: {games}")
     session["game_code"] = code
-    return redirect(url_for("waiting_room"), code=code)
+    return redirect(url_for("waiting_room", code=code))
 
 @app.route("/join_game", methods=["POST"])
 def join_game():
     code = request.form["game_code"].strip().upper()
     session['game_code'] = code
-    return redirect(url_for("waiting_room"), code=code)
+    return redirect(url_for("waiting_room", code=code))
 
 
 @app.route("/waiting_room")
@@ -106,7 +121,8 @@ def waiting_room():
 
 @app.route("/matchmaking")
 def matchmaking():
-    return "<h1>matchmaking page</h1>"
+    session['in_matchmaking'] = True
+    return render_template("matchmaking.html")
 
 
 
