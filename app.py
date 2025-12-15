@@ -5,6 +5,7 @@ import random
 import string
 from game.game_manager import GameManager
 from game.matchmaking import MatchmakingQueue
+import socket
 
 app = Flask(__name__)
 app.secret_key = 'sadfsad'
@@ -23,16 +24,14 @@ register_socket_events(socketio, games, MatchmakingQueue())
 def game():
     #if 'username' not in session:
         #return redirect(url_for('login'))
-    '''if "game_code" not in session:
-        return redirect(url_for("play"))
-    return render_template('game.html')'''
+
     code = request.args.get('code') or session.get('game_code')
 
     if not code:
         return redirect(url_for("play"))
 
-    # Store in session if it came from URL
-    if 'game_code' not in session:
+    # Always update session with code from URL if provided
+    if request.args.get('code'):
         session['game_code'] = code
         session.modified = True
 
@@ -129,5 +128,7 @@ def matchmaking():
 
 if __name__ == '__main__':
     socketio.run(app, debug=True, port=5000)
+
+
 
 

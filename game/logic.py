@@ -13,16 +13,16 @@ def generate_terrain(chunkWidth=20, tileSize=40, offset=0, seed=12):
         platforms.append(height)
     return platforms
 
-'''def generate_chunk(width=20, height=15, offset=0, seed=12):
+def generate_chunk(width=20, height=15, offset=0, seed=12):
     chunk = [[0 for x in range(width)] for y in range(height)]
 
     for x in range(width):
         terrainHeight = generate_terrain(chunkWidth=width, offset=offset, seed=seed)[x]
         for y in range(height-1, height-terrainHeight-1, -1):
             chunk[y][x] = 1
-    return chunk'''
+    return chunk
 
-def generate_chunk(width=20, height=15, offset=0, seed=12):
+'''def generate_chunk(width=20, height=15, offset=0, seed=12):
     chunk = [[0 for x in range(width)] for y in range(height)]
 
     # Choose a fixed terrain height (e.g., half the total height)
@@ -32,4 +32,4 @@ def generate_chunk(width=20, height=15, offset=0, seed=12):
         for y in range(height - 1, height - terrain_height - 1, -1):
             chunk[y][x] = 1
 
-    return chunk
+    return chunk'''

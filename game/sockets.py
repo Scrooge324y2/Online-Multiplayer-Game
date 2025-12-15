@@ -30,12 +30,6 @@ def register_socket_events(socketio, games, matchmaking_queue):
             game = GameManager(code) #create new game
             games[code] = game
 
-            #game.add_player(player1['sid']) #add each player to the game
-            #game.add_player(player2['sid'])
-
-            #socketio.server.enter_room(player1['sid'], code)
-            #socketio.server.enter_room(player2['sid'], code)
-
             socketio.emit('matchFound', {
                 'code': code,
                 'opponent': player2['username']
@@ -45,6 +39,7 @@ def register_socket_events(socketio, games, matchmaking_queue):
                 'code': code,
                 'opponent': player1['username']
             }, room=player2['sid'])
+
 
         @socketio.on('leaveMatchmaking')
         def leave_matchmaking():

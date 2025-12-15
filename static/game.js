@@ -42,8 +42,8 @@ function preload() {
 function create() {
     sceneContext = this;
 
-    // Create socket connection
-    gameSocket = io("http://127.0.0.1:5000", {
+    // Create socket connection "http://127.0.0.1:5000",
+    gameSocket = io("http://127.0.0.1:5000",{
         withCredentials: true,
         transports: ['websocket', 'polling']
     });
