@@ -123,14 +123,13 @@ def register_socket_events(socketio, games, matchmaking_queue):
                 'original_players': list(game.get_players().keys()),
                 'remapped': {}  # {new_sid: old_sid}
             }
-            print(f"★ Initialized tracking for {code}")
-            print(f"★ Original players: {rejoin_room.game_data[code]['original_players']}")
+            print(f" Initialized tracking for {code}")
+            print(f" Original players: {rejoin_room.game_data[code]['original_players']}")
 
         game_data = rejoin_room.game_data[code]
         original_players = game_data['original_players']
 
         print(f"Original players: {original_players}")
-        #print(f"Current players: {list(game.get_players().keys())}")
         print(f"Already remapped: {game_data['remapped']}")
 
         # Update the socket ID from old to new
@@ -184,6 +183,7 @@ def register_socket_events(socketio, games, matchmaking_queue):
 
     @socketio.on('requestChunk')
     def on_request_chunk(offset):
+        print("chunk requested")
         code = session.get('game_code')
         if not code or code not in games:
             print(f"ERROR: requestChunk - code={code}, exists={code in games if code else False}")
