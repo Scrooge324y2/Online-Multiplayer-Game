@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Game Over</title>
+    <script src="/socket.io/socket.io.js"></script>
+
+</head>
+<body>
+
+<div class="container">
+    <h1>Game Over</h1>
+    <div id="winner">Waiting for result...</div>
+    <button onclick="Menu()">Return to Home</button>
+</div>
+
+<script>
+    const socket = io();
+
+    socket.on("gameOver", (data) => {
+        document.getElementById("winner").textContent =
+            `${data.winner} wins! 🎉`;
+    });
+
+    function goHome() {
+        window.location.href = "/menu";
+    }
+</script>
+
+</body>
+</html>

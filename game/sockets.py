@@ -63,29 +63,16 @@ def register_socket_events(socketio, games, matchmaking_queue):
         session['old_sid'] = request.sid
         session.modified = True  # Force session to save
 
-        print(f"\n=== JOIN GAME (WAITING ROOM) ===")
-        print(f"Player {request.sid} joined room {code}")
-        print(f"Saved to session: game_code={code}, old_sid={request.sid}")
 
         game = games[code]
         result = game.add_player(request.sid)
 
         join_room(code)
 
-        print(f"Add player result: {result}")
-        print(f"Total players in game: {len(game.get_players())}")
-        print(f"Player list: {list(game.get_players().keys())}")
-        print(f"Rooms for this socket: {rooms()}")
-        print(f"================================\n")
 
         # Check if we have 2 players and start the game
         if game.all_players_ready():
             players_data = game.get_players_values()
-            print(f"\n=== STARTING GAME ===")
-            print(f"Emitting startGame to room {code}")
-            print(f"Players data: {players_data}")
-            print(f"====================\n")
-            #socketio.emit("readyToStart", {'players': players_data}, room=code)
             socketio.emit("startGame", {'players': players_data}, room=code)
             game.start_game()
 
@@ -95,20 +82,14 @@ def register_socket_events(socketio, games, matchmaking_queue):
         old_sid = session.get("old_sid")
         new_sid = request.sid
 
-        print(f"\n========== REJOIN ROOM ==========")
-        print(f"Old Socket ID from session: {old_sid}")
-        print(f"New Socket ID (request.sid): {new_sid}")
-        print(f"Game code from session: {code}")
 
         if not code:
-            print(f"ERROR: No game code in session!")
-            print(f"=================================\n")
+            print(f"No game code in session!")
             return
 
         if code not in games:
             print(f"ERROR: Game {code} not found in games dict!")
             print(f"Available games: {list(games.keys())}")
-            print(f"=================================\n")
             return
 
         game = games[code]
@@ -123,8 +104,6 @@ def register_socket_events(socketio, games, matchmaking_queue):
                 'original_players': list(game.get_players().keys()),
                 'remapped': {}  # {new_sid: old_sid}
             }
-            print(f" Initialized tracking for {code}")
-            print(f" Original players: {rejoin_room.game_data[code]['original_players']}")
 
         game_data = rejoin_room.game_data[code]
         original_players = game_data['original_players']
@@ -191,6 +170,8 @@ def register_socket_events(socketio, games, matchmaking_queue):
         chunk = games[code].get_chunk(offset=int(offset))
         emit('map', {'map': chunk})
 
+
+
     @socketio.on('playerMovement')
     def on_player_movement(data):
         sid = request.sid
@@ -219,6 +200,15 @@ def register_socket_events(socketio, games, matchmaking_queue):
 
         # Update this player's position in the game
         updatedPos = game.update_position(sid, data.get('x', 0), data.get('y', 0))
+
+        if updatedPos:
+            game.update_distance(sid, data.get('x', 0))
+            has_winner, winner_sid, reason = game.check_winner()
+
+            if has_winner:
+                print("=== GAME OVER ===")
+                socketio.emit('gameOver', {'winnerID': winner_sid,'reason': reason}, room=code)
+
 
         if on_player_movement.counter <= 3:
             print(f"update_position returned: {updatedPos}")
@@ -265,13 +255,12 @@ def register_socket_events(socketio, games, matchmaking_queue):
             #socketio.emit('playerDisconnected', {'id': sid}, room=code)
 
 
-    @socketio.on('game_over')
-    def on_game_over():
+    @socketio.on('gameOver')
+    def on_game_over(data):
         Game.add_game(
-            score=games['code'].get_score(),
-            winnerID=games['code'].get_winner(),
+            winnerID=data.get('winnerID'),
             start_time=games['code'].get_start_time(),
-            end_time=games['code'].get_end_time(),
+            end_time=games['code'].end_time(),
             random_seed=games['code'].get_random_seed()
         )
 

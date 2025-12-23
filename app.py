@@ -123,6 +123,14 @@ def matchmaking():
     session['in_matchmaking'] = True
     return render_template("matchmaking.html")
 
+@app.route("/game_over")
+def game_over():
+    if "game_code" not in session:
+        return redirect(url_for("play"))
+    code = session["game_code"]
+    if code not in games:
+        return redirect(url_for("play"))
+    return render_template("game_over.html")
 
 
 

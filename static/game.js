@@ -12,7 +12,7 @@ const config = {
     physics: {
         default: 'arcade',
         arcade: {
-            gravity: { y: 500 },
+            gravity: { y: 200 },
             debug: false
         }
     },
@@ -102,9 +102,9 @@ function create() {
 
     // Handle game start
     gameSocket.on('startGame', (data) => {
-        console.log("\n========== START GAME EVENT ==========");
-        console.log("My Socket ID:", mySocketId);
-        console.log("Players in game:", JSON.stringify(data.players, null, 2));
+        //console.log("\n========== START GAME EVENT ==========");
+        //console.log("My Socket ID:", mySocketId);
+        //console.log("Players in game:", JSON.stringify(data.players, null, 2));
 
         // Find my player data
         const myPlayer = data.players.find(p => p.id === mySocketId);
@@ -120,11 +120,11 @@ function create() {
 
         // Create the other player (blue square)
         if (other) {
-            console.log(" Found other player:", other);
-            console.log(" Creating BLUE square at:", other.x, other.y);
+            //console.log(" Found other player:", other);
+            //console.log(" Creating BLUE square at:", other.x, other.y);
 
             if (otherPlayer) {
-                console.log("Destroying existing otherPlayer...");
+                //console.log("Destroying existing otherPlayer...");
                 otherPlayer.destroy();
             }
 
@@ -148,12 +148,12 @@ function create() {
         gameSocket.moveCount++;
 
         if (gameSocket.moveCount <= 10) {
-            console.log("\n========== PLAYER MOVED EVENT #" + gameSocket.moveCount + " ==========");
-            console.log("My Socket ID:", mySocketId);
-            console.log("Moving Player ID:", data.id);
-            console.log("Position:", data.x, data.y);
-            console.log("Is this me?", data.id === mySocketId);
-            console.log("otherPlayer exists?", otherPlayer !== null && otherPlayer !== undefined);
+            //console.log("\n========== PLAYER MOVED EVENT #" + gameSocket.moveCount + " ==========");
+            //console.log("My Socket ID:", mySocketId);
+            //console.log("Moving Player ID:", data.id);
+            //console.log("Position:", data.x, data.y);
+            //console.log("Is this me?", data.id === mySocketId);
+            //console.log("otherPlayer exists?", otherPlayer !== null && otherPlayer !== undefined);
         }
 
         // Double check this isn't our own movement

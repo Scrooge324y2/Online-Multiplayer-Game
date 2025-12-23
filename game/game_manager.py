@@ -11,11 +11,12 @@ class GameManager:
         self._chunk_cache = []
         self._room_code = code
         self._random_seed = random.randint(1, 10000)
-        self._scores = {}
         self._start_time = 0
         self._end_time = 0
         self._winner = None
-
+        self._win_distance = 300
+        self._game_duration = 180
+        self._player_distances = {}
 
 
     def add_player(self, sid):
@@ -63,14 +64,65 @@ class GameManager:
             print(f"  Current players: {list(self._players.keys())}")
             return False
 
+    def update_distance(self, sid, new_x):
+        if sid not in self._player_distances:
+            self._player_distances[sid] = 0
+
+        if sid in self._players:
+            old_x = self._players[sid].get('furthest_x', 100)
+            if new_x > old_x: #only update if player moved forwards
+                self._player_distances[sid] = new_x
+                self._players[sid]['furthest_x'] = new_x
+
+    def get_distance_between_players(self):
+        if len(self._player_distances) < 2:
+            return 0
+
+        player_sids = list(self._player_distances.keys())
+        print(f"distance between players: {self._player_distances[player_sids[0]] - self._player_distances[player_sids[1]]}")
+        return abs(self._player_distances[player_sids[0]] - self._player_distances[player_sids[1]])
+
+    def get_leading_player(self):
+        if len(self._player_distances) < 2:
+            return None
+
+        player_sids = list(self._player_distances.keys())
+        p1_distance = self._player_distances[player_sids[0]]
+        p2_distance = self._player_distances[player_sids[1]]
+
+        if p1_distance > p2_distance:
+            return player_sids[0]
+        elif p2_distance > p1_distance:
+            return player_sids[1]
+        else:
+            return None
+
+    def check_winner(self):
+        if len(self._player_distances) < 2:
+            return (False, None, None)
+
+        player_sids = list(self._player_distances.keys())
+        p1_distance = self._player_distances[player_sids[0]]
+        p2_distance = self._player_distances[player_sids[1]]
+
+        distance_diff = abs(p1_distance - p2_distance)
+
+        if distance_diff >= self._win_distance:
+            winner_sid = player_sids[0] if p1_distance > p2_distance else player_sids[1]
+            print("winner by distance:", winner_sid)
+            return (True, winner_sid, "distance")
+
+        if self._game_started and time.time() - self._start_time >= self._game_duration:
+            winner_sid = player_sids[0] if p1_distance > p2_distance else player_sids[1]
+            return (True, winner_sid, "time")
+
+        return (False, None, None)
+
+
     def start_game(self):
         self._game_started = True
         self._start_time = time.time()
 
-    def end_game(self, winner_sid):
-        self._game_started = False
-        self._end_time = time.time()
-        self._winner = winner_sid
 
     # --- GETTERS ---
     def get_max_players(self):
@@ -94,18 +146,12 @@ class GameManager:
     def get_random_seed(self):
         return self._random_seed
 
-    def get_scores(self):
-        return self._scores
-
     def get_start_time(self):
         return self._start_time
 
-    def get_end_time(self):
-        return self._end_time
+    def end_time(self):
+        return time.time()
 
     def get_winner(self):
         return self._winner
 
-    # --- SETTERS ---
-    def set_scores(self, value):
-        self._scores = value

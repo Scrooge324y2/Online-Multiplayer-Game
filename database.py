@@ -58,7 +58,6 @@ class UserGame(Base):
 class Game(Base):
     __tablename__ = 'games'
     GameID = Column(Integer, Sequence('game_id_seq'), primary_key=True)
-    Score = Column(Integer)
     WinnerID = Column(Integer)
     StartTime = Column(DateTime)
     EndTime = Column(DateTime)
