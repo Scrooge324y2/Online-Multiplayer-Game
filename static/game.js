@@ -48,6 +48,12 @@ function create() {
         transports: ['websocket', 'polling']
     });
 
+    gameSocket.on("gameOver", (data) => {
+        console.log("Game over event received!", data);
+        history.replaceState(null, "", "/play");
+        window.location.href = `/game_over?winner=${data.winnerUsername}&reason=${data.reason}`;
+    });
+
     gameSocket.on("connect", () => {
         console.log("\n=== GAME PAGE SOCKET CONNECTED ===");
         console.log("New Socket ID:", gameSocket.id);

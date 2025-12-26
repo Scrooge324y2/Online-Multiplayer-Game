@@ -41,6 +41,13 @@ class User(Base):
             stored_hash = result[0].encode('utf-8')
             return bcrypt.checkpw(bytesPw, stored_hash)
         return False
+
+    @staticmethod
+    def get_user_id(username):
+        result = session.execute(select(User.UserID).where(User.Username == username)).first()
+        if result:
+            return result[0]
+        return None
         
      
 
@@ -64,8 +71,8 @@ class Game(Base):
     RandomSeed = Column(Integer)
 
     @staticmethod
-    def add_game(self, score, winnerID, start_time, end_time, random_seed):
-        game = Game(Score=score, WinnerID=winnerID, StartTime=start_time, EndTime=end_time, RandomSeed=random_seed)
+    def add_game(winnerID, start_time, end_time, random_seed):
+        game = Game(WinnerID=winnerID, StartTime=start_time, EndTime=end_time, RandomSeed=random_seed)
         session.add(game)
         session.commit()
 

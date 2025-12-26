@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <title>Game Over</title>
-    <script src="/socket.io/socket.io.js"></script>
+    <script src="https://cdn.socket.io/4.7.2/socket.io.min.js"></script>
 
 </head>
 <body>
@@ -11,18 +11,23 @@
 <div class="container">
     <h1>Game Over</h1>
     <div id="winner">Waiting for result...</div>
-    <button onclick="Menu()">Return to Home</button>
+    <button onclick="Menu()">Main Menu</button>
 </div>
 
 <script>
-    const socket = io();
+    const socket = io("http://127.0.0.1:5000",{
+            withCredentials: true
+        });
 
-    socket.on("gameOver", (data) => {
-        document.getElementById("winner").textContent =
-            `${data.winner} wins! 🎉`;
-    });
+    const params = new URLSearchParams(window.location.search);
+    let winner = params.get("winner");
+    console.log(winner);
+    document.getElementById("winner").textContent =
+            `${winner} wins! 🎉`;
 
-    function goHome() {
+
+
+    function Menu() {
         window.location.href = "/menu";
     }
 </script>

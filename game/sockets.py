@@ -1,8 +1,6 @@
 from flask import request, session
 from flask_socketio import emit, join_room, rooms
 from game.game_manager import GameManager
-from database import Game
-
 
 def register_socket_events(socketio, games, matchmaking_queue):
     print(f"sockets, games: {games}")
@@ -65,8 +63,6 @@ def register_socket_events(socketio, games, matchmaking_queue):
 
 
         game = games[code]
-        result = game.add_player(request.sid)
-
         join_room(code)
 
 
@@ -185,6 +181,9 @@ def register_socket_events(socketio, games, matchmaking_queue):
 
         game = games[code]
 
+        if game.is_over(): #stops the function from running if the game has ended
+            return
+
         # Initialize counter
         if not hasattr(on_player_movement, 'counter'): #debugging
             on_player_movement.counter = 0
@@ -206,8 +205,11 @@ def register_socket_events(socketio, games, matchmaking_queue):
             has_winner, winner_sid, reason = game.check_winner()
 
             if has_winner:
-                print("=== GAME OVER ===")
-                socketio.emit('gameOver', {'winnerID': winner_sid,'reason': reason}, room=code)
+                print(f"Game over! Winner: {winner_sid} Reason: {reason}")
+                if sid == winner_sid:
+                    winner_username = session.get("username")
+                    game.end_game(session.get("user_id"))
+                    socketio.emit('gameOver', {'winnerUsername': winner_username,'reason': reason}, room=code)
 
 
         if on_player_movement.counter <= 3:
@@ -255,12 +257,4 @@ def register_socket_events(socketio, games, matchmaking_queue):
             #socketio.emit('playerDisconnected', {'id': sid}, room=code)
 
 
-    @socketio.on('gameOver')
-    def on_game_over(data):
-        Game.add_game(
-            winnerID=data.get('winnerID'),
-            start_time=games['code'].get_start_time(),
-            end_time=games['code'].end_time(),
-            random_seed=games['code'].get_random_seed()
-        )
 

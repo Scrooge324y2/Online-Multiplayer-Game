@@ -1,22 +1,23 @@
 from game.logic import generate_chunk
+from database import Game
 import random
+from datetime import datetime
 import time
 
 class GameManager:
     def __init__(self, code):
         self._max_players = 2
-        self._player_usernames = {}
         self._players = {}
         self._game_started = False
         self._chunk_cache = []
         self._room_code = code
         self._random_seed = random.randint(1, 10000)
         self._start_time = 0
-        self._end_time = 0
         self._winner = None
         self._win_distance = 300
         self._game_duration = 180
         self._player_distances = {}
+        self._is_over = False
 
 
     def add_player(self, sid):
@@ -109,7 +110,6 @@ class GameManager:
 
         if distance_diff >= self._win_distance:
             winner_sid = player_sids[0] if p1_distance > p2_distance else player_sids[1]
-            print("winner by distance:", winner_sid)
             return (True, winner_sid, "distance")
 
         if self._game_started and time.time() - self._start_time >= self._game_duration:
@@ -121,7 +121,19 @@ class GameManager:
 
     def start_game(self):
         self._game_started = True
-        self._start_time = time.time()
+        self._start_time = datetime.now()
+
+    def end_game(self, winner_user_id):
+        if not self.is_over:
+            Game.add_game(
+                winnerID=winner_user_id,
+                start_time=self._start_time,
+                end_time=datetime.now(),
+                random_seed=self._random_seed,
+            )
+            self._is_over = True
+        print("self.is_over:", self._is_over)
+
 
 
     # --- GETTERS ---
@@ -149,9 +161,12 @@ class GameManager:
     def get_start_time(self):
         return self._start_time
 
-    def end_time(self):
-        return time.time()
-
     def get_winner(self):
         return self._winner
+
+    def is_over(self):
+        return self._is_over
+
+
+
 
