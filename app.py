@@ -9,10 +9,17 @@ import socket
 
 app = Flask(__name__)
 app.secret_key = 'sadfsad'
-socketio = SocketIO(
+'''socketio = SocketIO(
     app,
     cors_allowed_origins="http://127.0.0.1:5000",
     manage_session=True,
+)'''
+socketio = SocketIO(
+    app,
+    cors_allowed_origins="http://127.0.0.1:5000",
+    manage_session=False,
+    cookie='io',
+    #logger=True
 )
 
 games = {}
@@ -48,6 +55,7 @@ def login():
         if User.authenticate_user(username, password):
             session['username'] = username #creates session for the user
             session['user_id'] = User.get_user_id(username) #used when sending game details to database
+            session.modified = True
             return redirect(url_for('menu'))
         else:
             return render_template("login.html", error="Invalid username or password")
@@ -77,11 +85,6 @@ def leaderboard():
         return redirect(url_for('login'))
     return "<h1>Leaderboard</h1>"
 
-@app.route("/settings")
-def settings():
-    if 'username' not in session:
-        return redirect(url_for('login'))
-    return "<h1>Settings</h1>"
 
 @app.route("/logout")
 def logout():
@@ -117,6 +120,9 @@ def create_game():
 def join_game():
     if 'username' not in session:
         return redirect(url_for('login'))
+    '''if session.get('game_code'):
+        print("Player attempted matchmaking while still in a game")
+        session.pop('game_code', None)'''
     code = request.form["game_code"].strip().upper()
     session['game_code'] = code
     return redirect(url_for("waiting_room", code=code))
@@ -134,6 +140,9 @@ def waiting_room():
 def matchmaking():
     if 'username' not in session:
         return redirect(url_for('login'))
+    '''if session.get('game_code'):
+        print("Player attempted matchmaking while still in a game")
+        session.pop('game_code', None)'''
     session['in_matchmaking'] = True
     return render_template("matchmaking.html")
 

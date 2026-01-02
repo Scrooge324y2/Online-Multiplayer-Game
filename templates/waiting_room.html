@@ -11,7 +11,9 @@
 
     <script>
         const socket = io("http://127.0.0.1:5000",{
-            withCredentials: true
+            withCredentials: true,
+            transports: ['websocket', 'polling'],
+            path: '/socket.io/'  // Explicit path
         });
 
         socket.on("connect", () => {
@@ -19,8 +21,7 @@
             socket.emit("joinGame", { code: "{{ code }}" });
         });
 
-        socket.on("startGame", (data) => {
-            console.log("Game starting with players:", data.players);
+        socket.on("gameReady", () => {
             history.replaceState(null, "", "/play");
             window.location.href = "/game?code={{ code }}";
         });
