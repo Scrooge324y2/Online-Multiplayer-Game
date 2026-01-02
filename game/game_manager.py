@@ -13,12 +13,14 @@ class GameManager:
         self._random_seed = random.randint(1, 10000)
         self._start_time = 0
         self._winner = None
-        self._win_distance = 300
+        self._win_distance = 3000
         self._player_distances = {}
         self._is_over = False
         self._generator = ProceduralGenerator(seed=self._random_seed)
         self._started = False
         self._ready_sids = set()
+        self._next_chunk_index = 0
+
 
 
 
@@ -51,13 +53,22 @@ class GameManager:
                 return player
         return None
 
-    def get_chunk(self, offset):
-        if offset < len(self._chunk_cache):
+    def get_chunk(self, index):
+        '''if offset < len(self._chunk_cache):
             return self._chunk_cache[offset]
         else:
             chunk = self._generator .generate_chunk(offset=offset)
             self._chunk_cache.append(chunk)
-            return chunk
+            return chunk'''
+
+
+        if index < len(self._chunk_cache):
+            chunk = self._chunk_cache[index]
+        else:
+            chunk = self._generator.generate_chunk(offset=index)
+            self._chunk_cache.append(chunk)
+
+        return chunk
 
     def update_sid(self, user_id, new_sid):#updates a player's socket ID wghen they reconnect
         if user_id in self._players:

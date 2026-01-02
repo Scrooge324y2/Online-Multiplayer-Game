@@ -31,7 +31,6 @@ let player;
 let otherPlayer;
 let platforms;
 let cursors;
-let chunkOffset = 0;
 let chunkWidth = 20; //tiles per chunk
 const tileSize = 40; //pixels per tile
 const height = 600;
@@ -39,11 +38,21 @@ const MAX_JUMP_HEIGHT_TILES = 2;
 const JUMP_VELOCITY = Math.sqrt(2 * 400 * (MAX_JUMP_HEIGHT_TILES * tileSize));
 let mySocketId = null;
 let sceneContext = null;
+let lastSentX = null;
+let lastSentY = null;
+let highestChunkRequested = -1;
+let highestChunkReceived = -1;
 
 function preload() {
 }
 
 function create() {
+    function requestInitialChunkOnce() {
+        if (sceneContext.initialChunkRequested) return;
+        sceneContext.initialChunkRequested = true;
+        highestChunkRequested = 0;
+        gameSocket.emit('requestChunk', { index: 0 });
+    }
     sceneContext = this;
 
     // Create socket connection "http://127.0.0.1:5000",
@@ -61,45 +70,57 @@ function create() {
         mySocketId = gameSocket.id;
         gameSocket.emit("rejoinRoom");
 
-        // request the first chunk
-        setTimeout(() => {
-            gameSocket.emit('requestChunk', 0);}, 200);
+
     });
 
     gameSocket.on("reconnect", () => {
         console.warn("Socket reconnected, rejoining room");
-        gameSocket.emit("rejoinRoom");
+        //gameSocket.emit("rejoinRoom");
     });
 
     platforms = this.physics.add.staticGroup();
-    this.chunksLoaded = false;
     this.offset = 0;
+    this.requestingChunk = false;
+    this.serverReady = false;
+    sceneContext.initialChunkRequested = false;
+    this.cameraFollowing = false;
 
     // Handle map chunks
-    gameSocket.on('map', (data) => {
-        sceneContext.requestingChunk = false;
-        chunkWidth = data.map[0].length;
-        drawChunk(sceneContext, data.map, chunkOffset);
-        chunkOffset++;
-        sceneContext.offset = chunkOffset;
-        sceneContext.chunksLoaded = true;
+    gameSocket.on('map', ({index, map}) => {
+        if (index <= highestChunkReceived) return;
+        console.log("Received chunk:", index);
+        chunkWidth = map[0].length;
 
-        const worldWidth = chunkOffset * chunkWidth * tileSize;
+        const worldWidth = (highestChunkReceived + 1) * chunkWidth * tileSize;
         sceneContext.physics.world.setBounds(0, 0, worldWidth, height);
         sceneContext.cameras.main.setBounds(0, 0, worldWidth, height);
+
+
+        drawChunk(sceneContext, map, index);
+        highestChunkReceived = index;
+
+        //sceneContext.physics.world.colliders.update();
+
+        if (index === 0 && !sceneContext.cameraFollowing) {
+            sceneContext.cameras.main.startFollow(player, true, 0.1, 0.1);
+            sceneContext.cameraFollowing = true;
+        }
     });
 
     // Create user player (red square)
     player = this.add.rectangle(100, 450, tilesToPixels(1), tilesToPixels(1), 0xff0000);
     this.physics.add.existing(player);
     player.body.setCollideWorldBounds(true);
-    this.physics.add.collider(player, platforms);
+    this.playerCollider = this.physics.add.collider(player, platforms);
+    player.body.allowSleep = false;
 
 
     cursors = this.input.keyboard.createCursorKeys();
 
     // Handle game start
     gameSocket.on('startGame', (data) => {
+        sceneContext.serverReady = true;
+        requestInitialChunkOnce();
         // Find my player data
         const myPlayer = data.players.find(p => p.id === mySocketId);
         const other = data.players.find(p => p.id !== mySocketId);
@@ -118,12 +139,14 @@ function create() {
             otherPlayer = sceneContext.add.rectangle(other.x, other.y, tilesToPixels(1), tilesToPixels(1), 0x0000ff);
             sceneContext.physics.add.existing(otherPlayer);
             otherPlayer.body.setCollideWorldBounds(true);
-            sceneContext.physics.add.collider(otherPlayer, platforms);
+            this.otherPlayerCollider = sceneContext.physics.add.collider(otherPlayer, platforms);
+            otherPlayer.body.allowSleep = false;
         }
     });
 
     gameSocket.on('syncState', (data) => {
         sceneContext.serverReady = true;
+        requestInitialChunkOnce();
         const myPlayer = data.players.find(p => p.id === mySocketId);
         const other = data.players.find(p => p.id !== mySocketId);
 
@@ -162,10 +185,13 @@ function create() {
 
 
 function update(time, delta) {
-    if (!sceneContext.chunksLoaded || !sceneContext.serverReady) return;
+    if (!sceneContext.serverReady) return;
+    if (highestChunkReceived < 0) return;
+
     if (sceneContext.gameEnded) return;
 
-    sceneContext.cameras.main.scrollX += 100 * (delta / 1000);
+
+
     if (!player) return;
 
     // Handle player movement
@@ -184,20 +210,24 @@ function update(time, delta) {
     }
 
     // Request new chunks
-    if (player.x > (chunkOffset - 2) * chunkWidth * tileSize && !sceneContext.requestingChunk) {
-        sceneContext.requestingChunk = true;
-        gameSocket.emit('requestChunk', parseInt(sceneContext.offset));
+    if (player.x > (highestChunkReceived - 1) * chunkWidth * tileSize && highestChunkRequested === highestChunkReceived) {
+        highestChunkRequested++;
+        gameSocket.emit('requestChunk', { index: highestChunkRequested });
+
     }
 
-    // Send my position to server
-    if (gameSocket && gameSocket.connected) {
+    // Send position to server
+    if (gameSocket && gameSocket.connected && (player.x !== lastSentX || player.y !== lastSentY)) {
         gameSocket.emit('playerMovement', { x: player.x, y: player.y });
+        lastSentX = player.x;
+        lastSentY = player.y;
 
 
     }
 }
 
 function drawChunk(scene, chunk, offset) {
+    console.log("Drawing chunk at offset:", offset);
     for (let y = 0; y < chunk.length; y++) {
         for (let x = 0; x < chunk[y].length; x++) {
             if (chunk[y][x] === 1) {
@@ -219,7 +249,11 @@ function drawChunk(scene, chunk, offset) {
                 platforms.add(spike);
         }   }
     }
+    platforms.children.each((plat) => {
+        plat.body.updateFromGameObject();
+    });
 }
+
 
 
 function createSpike(scene, x, y) {

@@ -84,14 +84,18 @@ def register_socket_events(socketio, games, matchmaking_queue):
             emit("syncState",{"players": game.get_players_values()})
 
     @socketio.on('requestChunk')
-    def on_request_chunk(offset):
+    def on_request_chunk(data):
         print("chunk requested")
         code = session.get('game_code')
+
         if not code or code not in games:
             print(f"ERROR: requestChunk - code={code}, exists={code in games if code else False}")
             return
-        chunk = games[code].get_chunk(offset=int(offset))
-        emit('map', {'map': chunk})
+
+        index = int(data['index'])
+        chunk = games[code].get_chunk(index)
+
+        emit('map', {'index': index,'map': chunk}, to=request.sid)
         print("chunk sent")
 
 
@@ -112,7 +116,7 @@ def register_socket_events(socketio, games, matchmaking_queue):
         updatedPos = game.update_position(sid, data.get('x', 0), data.get('y', 0))
 
         if updatedPos:
-            socketio.emit('playerMoved', updatedPos, room=code,include_self=False)  # sends position only to other player
+            socketio.emit('playerMoved', updatedPos, room=code, include_self=False)  # sends position only to other player
             game.update_distance(sid, data.get('x', 0))
             has_winner, winner_user_id, reason = game.check_winner()
 
