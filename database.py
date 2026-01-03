@@ -3,7 +3,7 @@ from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker, declarative_base
 from sqlalchemy import Column, Time, DateTime, ForeignKey, Integer, NVARCHAR, Numeric, Sequence, select, VARCHAR
 from sqlalchemy.orm import relationship
-from sqlalchemy.sql import func
+from sqlalchemy.sql import func, desc
 engine = create_engine('sqlite:///database.db', echo=True)
 #engine = create_engine('sqlite:///:memory:', echo=True)
 Base = declarative_base()
@@ -48,8 +48,22 @@ class User(Base):
         if result:
             return result[0]
         return None
-        
-     
+
+    @staticmethod
+    def get_top_10_by_wins():
+        stmt = (
+            select(
+                User.Username,
+                func.count(Game.GameID).label("wins")
+            )
+            .join(Game, Game.WinnerID == User.UserID)
+            .group_by(User.UserID)
+            .order_by(desc("wins"))
+            .limit(10)
+        )
+
+        results = session.execute(stmt).all()
+        return results
 
 class UserGame(Base):
     __tablename__ = 'user_games'
@@ -75,6 +89,8 @@ class Game(Base):
         game = Game(WinnerID=winnerID, StartTime=start_time, EndTime=end_time, RandomSeed=random_seed)
         session.add(game)
         session.commit()
+        return game.GameID
+
 
 
 Base.metadata.create_all(engine)

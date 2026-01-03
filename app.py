@@ -83,6 +83,8 @@ def menu():
 def leaderboard():
     if 'username' not in session:
         return redirect(url_for('login'))
+    top_players = User.get_top_10_by_wins()
+    return render_template("leaderboard.html", players=top_players)
     return "<h1>Leaderboard</h1>"
 
 
@@ -152,16 +154,15 @@ def game_over():
         return redirect(url_for('login'))
     if "game_code" not in session:
         return redirect(url_for("play"))
-    code = session["game_code"]
-    if code not in games:
-        return redirect(url_for("play"))
+    #code = session["game_code"]
+    #if code not in games:
+        #return redirect(url_for("play"))
     return render_template("game_over.html")
 
 
 
 if __name__ == '__main__':
     socketio.run(app, debug=True, port=5000)
-
 
 
 

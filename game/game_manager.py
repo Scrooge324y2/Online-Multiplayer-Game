@@ -1,5 +1,5 @@
 from game.logic import ProceduralGenerator
-from database import Game
+from database import Game, UserGame
 import random
 from datetime import datetime
 import time
@@ -8,18 +8,17 @@ class GameManager:
     def __init__(self, code):
         self._max_players = 2
         self._players = {}
-        self._chunk_cache = []
+        self._chunk_cache = {}
         self._room_code = code
         self._random_seed = random.randint(1, 10000)
         self._start_time = 0
         self._winner = None
-        self._win_distance = 3000
+        self._win_distance = 5000
         self._player_distances = {}
         self._is_over = False
         self._generator = ProceduralGenerator(seed=self._random_seed)
         self._started = False
-        self._ready_sids = set()
-        self._next_chunk_index = 0
+        self._ready_sids = set()#
 
 
 
@@ -37,8 +36,11 @@ class GameManager:
         return True
 
     def remove_player(self, sid):
-        if sid in self._players:
-            del self._players[sid]
+        for user_id, player in list(self._players.items()):
+            if player['sid'] == sid:
+                del self._players[user_id]
+                break
+
         if len(self._players) < self._max_players:
             self._started = False
 
@@ -53,22 +55,18 @@ class GameManager:
                 return player
         return None
 
-    def get_chunk(self, index):
-        '''if offset < len(self._chunk_cache):
+    def get_chunk(self, offset):
+        print(f"chunk cache keys: {list(self._chunk_cache.keys())}")
+        if offset in self._chunk_cache:
             return self._chunk_cache[offset]
-        else:
-            chunk = self._generator .generate_chunk(offset=offset)
-            self._chunk_cache.append(chunk)
-            return chunk'''
 
-
-        if index < len(self._chunk_cache):
-            chunk = self._chunk_cache[index]
-        else:
-            chunk = self._generator.generate_chunk(offset=index)
-            self._chunk_cache.append(chunk)
-
+        chunk = self._generator.generate_valid_chunk(offset=offset)
+        if chunk is None:
+            print("ERROR: generator returned None, using flat chunk")
+            chunk = self._generator.generate_flat_chunk(offset=offset)
+        self._chunk_cache[offset] = chunk
         return chunk
+
 
     def update_sid(self, user_id, new_sid):#updates a player's socket ID wghen they reconnect
         if user_id in self._players:
@@ -129,12 +127,14 @@ class GameManager:
     def end_game(self, winner_user_id):
         print("Ending game...")
         if not self._is_over:
-            Game.add_game(
+            game_id = Game.add_game(
                 winnerID=winner_user_id,
                 start_time=self._start_time,
                 end_time=datetime.now(),
                 random_seed=self._random_seed,
             )
+            for user_id in self._players.keys():
+                UserGame.add_user_game(user_id, game_id)
             self._is_over = True
 
 

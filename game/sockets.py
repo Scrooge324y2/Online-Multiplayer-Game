@@ -10,7 +10,6 @@ def register_socket_events(socketio, games, matchmaking_queue):
     def on_connect():
         print(f'Client connected: {request.sid}')
         print(f'Session game_code: {session.get("game_code")}')
-        print(f'Session old_sid: {session.get("old_sid")}')
         print(f'Current rooms: {rooms()}')
 
 
@@ -62,7 +61,8 @@ def register_socket_events(socketio, games, matchmaking_queue):
         game = games[code]
         join_room(code)
         game.add_player(user_id=session['user_id'], sid=request.sid, username=session['username'])
-        socketio.emit("gameReady")
+        if game.all_players_ready():
+            socketio.emit("gameReady")
 
 
     @socketio.on('rejoinRoom')
@@ -80,23 +80,19 @@ def register_socket_events(socketio, games, matchmaking_queue):
             game.start_game()
             socketio.emit("startGame",{"players": game.get_players_values()},room=code)
 
-        else:
-            emit("syncState",{"players": game.get_players_values()})
+        #else:
+            #emit("syncState",{"players": game.get_players_values()})
 
     @socketio.on('requestChunk')
-    def on_request_chunk(data):
-        print("chunk requested")
+    def on_request_chunk(offset):
+        print(f"chunk requested, offset: {offset}")
         code = session.get('game_code')
-
         if not code or code not in games:
             print(f"ERROR: requestChunk - code={code}, exists={code in games if code else False}")
             return
-
-        index = int(data['index'])
-        chunk = games[code].get_chunk(index)
-
-        emit('map', {'index': index,'map': chunk}, to=request.sid)
-        print("chunk sent")
+        chunk = games[code].get_chunk(offset=int(offset))
+        emit('map', {'map': chunk})
+        print(f"chunk sent, offset: {offset}")
 
 
 
@@ -116,7 +112,7 @@ def register_socket_events(socketio, games, matchmaking_queue):
         updatedPos = game.update_position(sid, data.get('x', 0), data.get('y', 0))
 
         if updatedPos:
-            socketio.emit('playerMoved', updatedPos, room=code, include_self=False)  # sends position only to other player
+            socketio.emit('playerMoved', updatedPos, room=code,include_self=False)  # sends position only to other player
             game.update_distance(sid, data.get('x', 0))
             has_winner, winner_user_id, reason = game.check_winner()
 
@@ -158,6 +154,8 @@ def register_socket_events(socketio, games, matchmaking_queue):
         print(f'Game code: {code}')
 
         #socketio.start_background_task(handle_disconnect_timeout, game, request.sid)
+
+
 
 
 
