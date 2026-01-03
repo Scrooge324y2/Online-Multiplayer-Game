@@ -18,17 +18,29 @@ class BiomeType:
 
 class ObstacleType:
     SPIKE = 2
-    MOVING_PLATFORM = 3
-    DISAPPEARING_BLOCK = 4
-    BOUNCE_PAD = 5
+    BOUNCE_PAD = 3
 
 
 class ProceduralGenerator:
     def __init__(self, seed=12):
+        """
+        Initialize procedural generator with adjustable difficulty.
+
+        difficulty: float from 0.5 (easy) to 2.0 (very hard)
+            - 0.5 = Easy (fewer spikes, more bounce pads, smaller gaps)
+            - 1.0 = Normal (balanced)
+            - 1.5 = Hard (more spikes, fewer bounce pads, bigger gaps)
+            - 2.0 = Very Hard (extreme challenge)
+        """
         self.seed = seed
+        self.difficulty = 0.5 #goes from 0.5 o 2.0
         self.terrain_noise = OpenSimplex(seed)
         self.biome_noise = OpenSimplex(seed + 1000)
         self.obstacle_noise = OpenSimplex(seed + 2000)
+
+    def adjust_difficulty(self, difficulty):
+        if difficulty!= 2.0:
+            self.difficulty += 0.1
 
     def generate_flat_chunk(self, width=20, height=15, offset=0, seed=12):
         chunk = [[0 for x in range(width)] for y in range(height)]
@@ -57,9 +69,13 @@ class ProceduralGenerator:
             return BiomeType.MOUNTAINS
         else:
             return BiomeType.CAVES
-        return BiomeType.CAVES
 
     def get_biome_config(self, biome):
+        """
+        Return configuration parameters for each biome type.
+        Adjusted based on difficulty setting.
+        """
+        # Base configurations
         configs = {
             BiomeType.PLAINS: {
                 'height_multiplier': 5,
@@ -67,7 +83,8 @@ class ProceduralGenerator:
                 'platform_probability': 0.35,
                 'obstacle_probability': 0.12,
                 'gap_probability': 0.2,
-                'spike_probability': 0.4  # High spike frequency
+                'spike_probability': 0.4,
+                'bounce_pad_probability': 0.15
             },
             BiomeType.HILLS: {
                 'height_multiplier': 7,
@@ -75,7 +92,8 @@ class ProceduralGenerator:
                 'platform_probability': 0.4,
                 'obstacle_probability': 0.15,
                 'gap_probability': 0.25,
-                'spike_probability': 0.5
+                'spike_probability': 0.5,
+                'bounce_pad_probability': 0.2
             },
             BiomeType.MOUNTAINS: {
                 'height_multiplier': 9,
@@ -83,7 +101,8 @@ class ProceduralGenerator:
                 'platform_probability': 0.5,
                 'obstacle_probability': 0.18,
                 'gap_probability': 0.3,
-                'spike_probability': 0.6
+                'spike_probability': 0.6,
+                'bounce_pad_probability': 0.25
             },
             BiomeType.CAVES: {
                 'height_multiplier': 6,
@@ -92,10 +111,26 @@ class ProceduralGenerator:
                 'obstacle_probability': 0.15,
                 'gap_probability': 0.15,
                 'has_ceiling': True,
-                'spike_probability': 0.45
+                'spike_probability': 0.45,
+                'bounce_pad_probability': 0.2
             }
         }
-        return configs.get(biome, configs[BiomeType.PLAINS])
+
+        config = configs.get(biome, configs[BiomeType.PLAINS])
+
+        # Apply difficulty scaling
+        # Harder = more spikes, fewer bounce pads, more/bigger gaps
+        config['spike_probability'] *= self.difficulty
+        config['bounce_pad_probability'] /= self.difficulty
+        config['gap_probability'] *= (0.5 + self.difficulty * 0.5)  # Gradually increase gaps
+        config['platform_probability'] /= (0.8 + self.difficulty * 0.2)  # Slightly fewer platforms
+
+        # Clamp values to reasonable ranges
+        config['spike_probability'] = min(0.8, config['spike_probability'])
+        config['bounce_pad_probability'] = max(0.05, config['bounce_pad_probability'])
+        config['gap_probability'] = min(0.5, config['gap_probability'])
+
+        return config
 
     def generate_terrain_heights(self, width, offset, biome_config):
         heights = []
@@ -114,7 +149,8 @@ class ProceduralGenerator:
 
     def generate_gaps(self, heights, width, offset, biome_config):
         gaps = []
-        min_spacing = 4  # Allow gaps closer together
+        # Difficulty affects spacing - harder = less spacing between gaps
+        min_spacing = max(3, int(5 - self.difficulty))  # 4-5 tiles at easy, 3 tiles at hard
         last_gap_end = -min_spacing
         x = 0
         while x < width:
@@ -123,9 +159,10 @@ class ProceduralGenerator:
                 noise_val = self.obstacle_noise.noise2(x=global_x * 0.3, y=100)
                 noise_val = (noise_val + 1) / 2
                 if noise_val < biome_config['gap_probability']:
-                    # Variable gap width 2-4 tiles
-                    gap_width = 2 + int(abs(self.obstacle_noise.noise2(x=global_x * 0.25, y=200)) * 2.5)
-                    gap_width = min(gap_width, PLAYER_MAX_JUMP_DISTANCE)  # Cap at max jumpable
+                    # Difficulty affects gap width - harder = potentially bigger gaps
+                    base_width = 2 + int(abs(self.obstacle_noise.noise2(x=global_x * 0.25, y=200)) * 2.5)
+                    # Scale gap width with difficulty (but keep it jumpable)
+                    gap_width = min(PLAYER_MAX_JUMP_DISTANCE, int(base_width * (0.8 + self.difficulty * 0.2)))
 
                     if x + gap_width < width:
                         height_before = heights[x - 1] if x > 0 else heights[x]
@@ -179,7 +216,6 @@ class ProceduralGenerator:
 
                 platform_y = base_height + height_above
 
-                # More lenient bounds checking
                 if platform_y < height - 2 and x + plat_width <= width:
                     platforms.append({
                         'x': x,
@@ -203,11 +239,9 @@ class ProceduralGenerator:
                 terrain_height = heights[x]
                 type_noise = abs(self.obstacle_noise.noise2(x=global_x * 0.3, y=900))
                 if type_noise < 0.4:
-                    obstacle_type = ObstacleType.SPIKE
-                elif type_noise < 0.7:
-                    obstacle_type = ObstacleType.DISAPPEARING_BLOCK
-                else:
                     obstacle_type = ObstacleType.BOUNCE_PAD
+                else:
+                    obstacle_type = ObstacleType.SPIKE
                 obstacles.append({
                     'x': x,
                     'y': terrain_height,
@@ -232,19 +266,19 @@ class ProceduralGenerator:
         biome_config = self.get_biome_config(biome)
         heights = self.generate_terrain_heights(width, offset, biome_config)
 
-        for x in range(width):
+        for x in range(width): # Draw terrain
             terrain_height = heights[x]
             for y in range(height - 1, height - terrain_height - 1, -1):
                 if 0 <= y < height:
                     chunk[y][x] = 1
 
-        gaps = self.generate_gaps(heights, width, offset, biome_config)
+        gaps = self.generate_gaps(heights, width, offset, biome_config)#add gaps
         for gap_x, gap_width in gaps:
             for x in range(gap_x, min(gap_x + gap_width, width)):
                 for y in range(height):
                     chunk[y][x] = 0
 
-        platforms = self.generate_floating_platforms(heights, width, height, offset, biome_config)
+        platforms = self.generate_floating_platforms(heights, width, height, offset, biome_config) #add floating platforms
         for platform in platforms:
             plat_y = height - 1 - platform['y']
             if 0 <= plat_y < height:
@@ -252,7 +286,7 @@ class ProceduralGenerator:
                     if platform['x'] + dx < width:
                         chunk[plat_y][platform['x'] + dx] = 1
 
-        obstacles = self.generate_obstacles(heights, width, offset, biome_config)
+        obstacles = self.generate_obstacles(heights, width, offset, biome_config) #add obstacles
         for obstacle in obstacles:
             obs_y = height - 1 - obstacle['y'] - 1
             if not (0 <= obs_y < height and obstacle['x'] < width):
@@ -269,6 +303,16 @@ class ProceduralGenerator:
 
         return chunk
 
+    def count_obstacles(self, chunk):
+        counts = {2: 0, 3: 0, 4: 0, 5: 0}
+
+        for row in chunk:
+            for tile in row:
+                if tile in counts:
+                    counts[tile] += 1
+
+        return counts
+
     def generate_valid_chunk(self, width=20, height=15, offset=0, max_attempts=10):
         """Generate and validate chunk, with fallback to flat chunk"""
         if offset == 0:
@@ -280,9 +324,10 @@ class ProceduralGenerator:
 
             if is_valid:
                 print(f"Chunk {offset} valid on attempt {attempt + 1}/{max_attempts}")
+                print(f" Obstacle counts: {self.count_obstacles(chunk)}")
                 return chunk
 
-            print(f" Chunk {offset} attempt {attempt + 1}/{max_attempts} failed ({len(reachable)} positions)")
+            print(f"Chunk {offset} attempt {attempt + 1}/{max_attempts} failed ({len(reachable)} positions)")
 
             # Vary generation strategy based on attempt
             if attempt < 3:
@@ -302,9 +347,8 @@ class ProceduralGenerator:
         return self.generate_flat_chunk(width, height, offset, self.seed)
 
     def validate_chunk_traversable(self, chunk, width, height):
-        """BFS pathfinding with proper termination conditions"""
-        MAX_NODES = 2500  # Increased for complex chunks
-        TIMEOUT_SECONDS = 2.0  # Increased timeout for complex validation
+        MAX_NODES = 2500
+        TIMEOUT_SECONDS = 2.0
 
         def get_ground_level(x):
             for y in range(height - 1, -1, -1):
@@ -322,9 +366,7 @@ class ProceduralGenerator:
                 return False
             if is_solid(x, y):
                 return False
-            # Spikes are deadly - can't occupy same space
-            if chunk[y][x] == ObstacleType.SPIKE:
-                return False
+
             return True
 
         def simulate_jump(start_x, start_y, direction):
@@ -348,7 +390,12 @@ class ProceduralGenerator:
             last_x, last_y = path[-1]
             land_y = last_y
 
-            while land_y < height - 1 and not is_solid(last_x, land_y + 1):
+            # Fall until hitting solid ground or bounce pad
+            while land_y < height - 1:
+                below_solid = is_solid(last_x, land_y + 1)
+                below_bounce = (land_y + 1 < height and chunk[land_y + 1][last_x] == ObstacleType.BOUNCE_PAD)
+                if below_solid or below_bounce:
+                    break
                 land_y += 1
                 if not is_valid_position(last_x, land_y):
                     return None
@@ -362,7 +409,10 @@ class ProceduralGenerator:
             neighbors = []
             on_ground = is_solid(x, y + 1)
 
-            if not on_ground:
+            # Check if on a bounce pad (counts as ground)
+            on_bounce_pad = (y + 1 < height and chunk[y + 1][x] == ObstacleType.BOUNCE_PAD)
+
+            if not on_ground and not on_bounce_pad:
                 return []
 
             # Check if standing on a spike (deadly position)
@@ -374,15 +424,24 @@ class ProceduralGenerator:
                 next_x = x + 1
                 # Check if we can walk to next position
                 if is_valid_position(next_x, y):
-                    if is_solid(next_x, y + 1):
+                    next_ground = is_solid(next_x, y + 1)
+                    next_bounce = (y + 1 < height and chunk[y + 1][next_x] == ObstacleType.BOUNCE_PAD)
+
+                    if next_ground or next_bounce:
                         # Ground continues - but check for spike on top
                         if y < height and chunk[y][next_x] != ObstacleType.SPIKE:
                             neighbors.append((next_x, y))
                     else:
                         # Walk off edge - fall straight down
                         fall_y = y
-                        while fall_y < height - 1 and not is_solid(next_x, fall_y + 1):
+                        while fall_y < height - 1:
+                            below_solid = is_solid(next_x, fall_y + 1)
+                            below_bounce = (
+                                        fall_y + 1 < height and chunk[fall_y + 1][next_x] == ObstacleType.BOUNCE_PAD)
+                            if below_solid or below_bounce:
+                                break
                             fall_y += 1
+
                         if fall_y < height and is_valid_position(next_x, fall_y):
                             # Check landing spot doesn't have spike
                             if chunk[fall_y][next_x] != ObstacleType.SPIKE:
@@ -418,11 +477,11 @@ class ProceduralGenerator:
         while queue:
             # Safety checks
             if time.time() - start_time > TIMEOUT_SECONDS:
-                print(f"Timeout (reached x={max_x_reached}/{width - 1})")
+                print(f" Timeout (reached x={max_x_reached}/{width - 1})")
                 return False, visited
 
             if len(visited) > MAX_NODES:
-                print(f"  Node limit (reached x={max_x_reached}/{width - 1})")
+                print(f"Node limit (reached x={max_x_reached}/{width - 1})")
                 return False, visited
 
             x, y = queue.popleft()

@@ -73,6 +73,7 @@ function create() {
         console.log("calling rejoin room on connect");
 
 
+
     });
 
     gameSocket.on("reconnect", () => {
@@ -81,6 +82,7 @@ function create() {
     });
 
     platforms = this.physics.add.staticGroup();
+    //this.physics.add.overlap(player, spikes, onSpikeHit, null, this);
     this.chunksLoaded = false;
     this.offset = 0;
     this.requestingChunk = false;
@@ -108,6 +110,8 @@ function create() {
     player.body.setCollideWorldBounds(true);
     this.playerCollider = this.physics.add.collider(player, platforms);
     player.body.allowSleep = false;
+    player.baseSpeed = 100;      // constant baseline
+    player.speed = player.baseSpeed;
 
 
     cursors = this.input.keyboard.createCursorKeys();
@@ -196,7 +200,7 @@ function update(time, delta) {
         player.body.setVelocityX(160);
     }
     else {
-        player.body.setVelocityX(100);
+        player.body.setVelocityX(player.speed);
     }
 
     if (cursors.up.isDown /*&& player.body.touching.down*/) {
@@ -236,23 +240,26 @@ function drawChunk(scene, chunk, offset) {
                 platforms.add(plat);
             }else if (chunk[y][x] === 2) {
                 console.log("Creating spike at:", x, y);
-                let spike = createSpike(
+                const spike = createSpike(
                     scene,
                     (x + offset * chunk[y].length) * tileSize + tileSize / 2,
                     y * tileSize + tileSize/2
                 );
-                platforms.add(spike);
+                //spikes.add(spike);
         }   }
     }
-    platforms.children.each((plat) => {
+    /*platforms.children.each((plat) => {
         plat.body.updateFromGameObject();
-    });
+    });*/
+    platforms.children.each(p => p.body.updateFromGameObject());
+
+
 }
 
 
 function createSpike(scene, x, y) {
-    // Visual triangle
-    const spike = scene.add.triangle(
+    // Visual only
+    scene.add.triangle(
         x, y,
         0, tileSize,
         tileSize, tileSize,
@@ -268,5 +275,26 @@ function createSpike(scene, x, y) {
         -tileSize * 0.1
     );
 
+    hitbox.isSpike = true;
+
     return hitbox;
+}
+
+function onSpikeHit(player, spike) {
+    if (player.spikeCooldown) return;
+
+    player.spikeCooldown = true;
+
+    // Apply slowdown
+    player.speed *= 0.65;
+    player.slowTimer = 1.0;
+
+    // Optional: visual feedback
+    player.setTint(0xff0000);
+
+    // Prevent multiple triggers per second
+    this.time.delayedCall(300, () => {
+        player.spikeCooldown = false;
+        player.clearTint();
+    });
 }
