@@ -1,0 +1,141 @@
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    min-height: 100vh;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: 20px;
+}
+
+.container {
+    background: rgba(255, 255, 255, 0.95);
+    padding: 40px;
+    border-radius: 20px;
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+    width: 100%;
+    max-width: 700px;
+    backdrop-filter: blur(10px);
+}
+
+table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-bottom: 30px;
+}
+
+caption {
+    color: #667eea;
+    font-size: 32px;
+    font-weight: 600;
+    margin-bottom: 30px;
+    text-align: center;
+}
+
+thead {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+}
+
+th {
+    color: white;
+    padding: 15px;
+    text-align: left;
+    font-weight: 600;
+    font-size: 16px;
+}
+
+th:first-child {
+    border-radius: 10px 0 0 0;
+}
+
+th:last-child {
+    border-radius: 0 10px 0 0;
+}
+
+tbody tr {
+    background: white;
+    transition: all 0.3s ease;
+}
+
+tbody tr:nth-child(even) {
+    background: #f8f9fa;
+}
+
+tbody tr:hover {
+    background: #e8f4f8;
+    transform: scale(1.02);
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+}
+
+td {
+    padding: 15px;
+    color: #333;
+    font-size: 16px;
+}
+
+tbody tr:first-child {
+    background: linear-gradient(135deg, #ffd89b 0%, #19547b 100%);
+    color: white;
+}
+
+tbody tr:first-child td {
+    color: white;
+    font-weight: 600;
+}
+
+tbody tr:nth-child(2) {
+    background: linear-gradient(135deg, #e0e0e0 0%, #757575 100%);
+    color: white;
+}
+
+tbody tr:nth-child(2) td {
+    color: white;
+    font-weight: 600;
+}
+
+tbody tr:nth-child(3) {
+    background: linear-gradient(135deg, #cd7f32 0%, #8b4513 100%);
+    color: white;
+}
+
+tbody tr:nth-child(3) td {
+    color: white;
+    font-weight: 600;
+}
+
+.rank-cell {
+    font-weight: 700;
+    font-size: 18px;
+}
+
+button {
+    width: 100%;
+    padding: 14px;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    border: none;
+    border-radius: 10px;
+    font-size: 16px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+button:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 25px rgba(102, 126, 234, 0.4);
+}
+
+button:active {
+    transform: translateY(0);
+}
+
+.medal {
+    margin-right: 8px;
+}

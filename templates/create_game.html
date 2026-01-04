@@ -2,11 +2,32 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>create_game</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Create Game</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles/create_game.css') }}">
 </head>
 <body>
-   <h1>{{ code }}</h1>
-    
+    <div class="container">
+        <p class="label">Your Game Code:</p>
+        <h1 id="gameCode">{{ code }}</h1>
+        <button class="copy-button" onclick="copyCode()">Copy Code</button>
+        <div class="info">
+            Share this code with a friend to invite them to your game. They can join by entering this code on the Play screen.
+        </div>
+    </div>
 
+    <script>
+        function copyCode() {
+            const code = document.getElementById('gameCode').textContent;
+            navigator.clipboard.writeText(code).then(() => {
+                const btn = document.querySelector('.copy-button');
+                const originalText = btn.textContent;
+                btn.textContent = '✓ Copied!';
+                setTimeout(() => {
+                    btn.textContent = originalText;
+                }, 2000);
+            });
+        }
+    </script>
 </body>
 </html>

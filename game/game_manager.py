@@ -13,7 +13,7 @@ class GameManager:
         self._random_seed = random.randint(1, 10000)
         self._start_time = 0
         self._winner = None
-        self._win_distance = 5000
+        self._win_distance = 3000
         self._player_distances = {}
         self._is_over = False
         self._generator = ProceduralGenerator(seed=self._random_seed)

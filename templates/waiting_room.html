@@ -2,18 +2,27 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Joining Game</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles/waiting_room.css') }}">
     <script src="https://cdn.socket.io/4.7.2/socket.io.min.js"></script>
 </head>
 <body>
-    <h1>Game Code: <span class="game-code">{{ code }}</span></h1>
-    <h2 class="loading">Waiting for other player...</h2>
+    <div class="container">
+        <h1>Game Code:</h1>
+        <div class="game-code">{{ code }}</div>
+        <div class="spinner"></div>
+        <h2 class="loading">Waiting for other player...</h2>
+        <div class="info">
+            Share this code with a friend to let them join your game!
+        </div>
+    </div>
 
     <script>
         const socket = io("http://127.0.0.1:5000",{
             withCredentials: true,
             transports: ['websocket', 'polling'],
-            path: '/socket.io/'  // Explicit path
+            path: '/socket.io/'
         });
 
         socket.on("connect", () => {

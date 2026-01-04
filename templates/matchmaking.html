@@ -4,12 +4,13 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Matchmaking</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles/matchmaking.css') }}">
     <script src="https://cdn.socket.io/4.7.2/socket.io.min.js"></script>
 </head>
 <body>
     <div class="container">
         <h1>Finding Match</h1>
-        <div class="spinner">⏳</div>
+        <div class="spinner"></div>
         <div class="status" id="status">Connecting to matchmaking...</div>
         <div class="queue-info" id="queue-info" style="display: none;">
             <p>Players in queue: <span id="queue-size">-</span></p>
@@ -21,7 +22,7 @@
         const socket = io("http://127.0.0.1:5000",{
             withCredentials: true,
             transports: ['websocket', 'polling'],
-            path: '/socket.io/'  // Explicit path
+            path: '/socket.io/'
         });
 
         let matchFound = false;
@@ -43,7 +44,6 @@
             console.log("Match found!", data);
             document.getElementById("status").textContent = "Match found! Connecting...";
 
-            // Store the game code for redirection
             window.gameCode = data.code;
             matchFound = true;
 
@@ -66,7 +66,6 @@
             window.location.href = "/play";
         }
 
-        // Handle page unload
         window.addEventListener("beforeunload", () => {
             if (!matchFound) {
                 socket.emit("leaveMatchmaking");
@@ -75,6 +74,3 @@
     </script>
 </body>
 </html>
-
-
-

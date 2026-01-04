@@ -1,0 +1,87 @@
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    min-height: 100vh;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: 20px;
+}
+
+.container {
+    background: rgba(255, 255, 255, 0.95);
+    padding: 50px;
+    border-radius: 20px;
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+    width: 100%;
+    max-width: 500px;
+    backdrop-filter: blur(10px);
+    text-align: center;
+}
+
+h1 {
+    color: #667eea;
+    margin-bottom: 15px;
+    font-size: 36px;
+    font-weight: 600;
+}
+
+.username {
+    color: #666;
+    font-size: 16px;
+    margin-bottom: 40px;
+    padding: 10px;
+    background: #f0f0f0;
+    border-radius: 10px;
+}
+
+.username strong {
+    color: #764ba2;
+    font-weight: 600;
+}
+
+nav {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+}
+
+nav a {
+    display: block;
+    padding: 18px 30px;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    text-decoration: none;
+    border-radius: 12px;
+    font-size: 18px;
+    font-weight: 600;
+    transition: all 0.3s ease;
+    box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3);
+}
+
+nav a:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 8px 25px rgba(102, 126, 234, 0.4);
+}
+
+nav a:active {
+    transform: translateY(-1px);
+}
+
+nav a:nth-child(1) {
+    background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+}
+
+nav a:nth-child(2) {
+    background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+}
+
+nav a:nth-child(3) {
+    background: linear-gradient(135deg, #43e97b 0%, #38f9d7 100%);
+}

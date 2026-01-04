@@ -2,29 +2,43 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Leaderboard</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles/leaderboard.css') }}">
 </head>
-    <body>
-
+<body>
+    <div class="container">
         <table>
             <caption>Top 10 Players</caption>
-            <tr>
-                <th>Rank</th>
-                <th>Username</th>
-                <th>Wins</th>
-            </tr>
-
-            {% for player in players %}
-            <tr>
-                <td>{{ loop.index }}</td>
-                <td>{{ player[0] }}</td>
-                <td>{{ player[1] }}</td>
-            </tr>
-            {% endfor %}
+            <thead>
+                <tr>
+                    <th>Rank</th>
+                    <th>Username</th>
+                    <th>Wins</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for player in players %}
+                <tr>
+                    <td class="rank-cell">
+                        {% if loop.index == 1 %}
+                            <span class="medal">🥇</span>
+                        {% elif loop.index == 2 %}
+                            <span class="medal">🥈</span>
+                        {% elif loop.index == 3 %}
+                            <span class="medal">🥉</span>
+                        {% endif %}
+                        {{ loop.index }}
+                    </td>
+                    <td>{{ player[0] }}</td>
+                    <td>{{ player[1] }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
         </table>
         <form action="/menu" method="get">
-            <button type="submit">Menu</button>
+            <button type="submit">Back to Menu</button>
         </form>
-
-    </body>
+    </div>
+</body>
 </html>

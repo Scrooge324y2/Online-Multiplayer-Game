@@ -1,0 +1,106 @@
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    min-height: 100vh;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: 20px;
+}
+
+.container {
+    background: rgba(255, 255, 255, 0.95);
+    padding: 60px 50px;
+    border-radius: 20px;
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+    width: 100%;
+    max-width: 500px;
+    backdrop-filter: blur(10px);
+    text-align: center;
+}
+
+h1 {
+    color: #667eea;
+    margin-bottom: 30px;
+    font-size: 32px;
+    font-weight: 600;
+}
+
+.spinner {
+    width: 80px;
+    height: 80px;
+    margin: 30px auto;
+    border: 6px solid #f3f3f3;
+    border-top: 6px solid #667eea;
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+
+.status {
+    color: #666;
+    font-size: 18px;
+    margin: 20px 0;
+    animation: pulse 1.5s ease-in-out infinite;
+}
+
+@keyframes pulse {
+    0%, 100% {
+        opacity: 1;
+    }
+    50% {
+        opacity: 0.5;
+    }
+}
+
+.queue-info {
+    background: #e8f4f8;
+    padding: 20px;
+    border-radius: 12px;
+    margin: 30px 0;
+    border-left: 4px solid #667eea;
+}
+
+.queue-info p {
+    color: #555;
+    font-size: 16px;
+    margin: 0;
+}
+
+#queue-size {
+    color: #667eea;
+    font-weight: 700;
+    font-size: 24px;
+}
+
+button {
+    padding: 14px 40px;
+    background: linear-gradient(135deg, #f5576c 0%, #f093fb 100%);
+    color: white;
+    border: none;
+    border-radius: 10px;
+    font-size: 16px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    margin-top: 20px;
+}
+
+button:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 25px rgba(245, 87, 108, 0.4);
+}
+
+button:active {
+    transform: translateY(0);
+}

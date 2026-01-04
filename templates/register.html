@@ -2,27 +2,38 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Register</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles/register.css') }}">
 </head>
 <body>
-    <h1>Register</h1>
-    <form method="POST" action="/register">
-        <label for="username">Username:</label>
-        <input type="text" id="username" name="username" pattern="[A-Za-z0-9_]{3,20}" required><br><br>
+    <div class="container">
+        <h1>Register</h1>
+        <form method="POST" action="/register">
+            <div class="input-group">
+                <label for="username">Username:</label>
+                <input type="text" id="username" name="username" pattern="[A-Za-z0-9_]{3,20}" required>
+            </div>
 
-        {% if error %}
-          <div class="error">{{ error }}</div>
-        {% endif %}
+            {% if error %}
+            <div class="error">{{ error }}</div>
+            {% endif %}
 
-        <label for="password">Password:</label>
-        <input type="password" id="password" name="password"
-       pattern="(?=.*[0-9])(?=.*[a-z])(?=.*[A-Z])(?=.*[!@#$%^&*_]).{8,16}"
-       required>
+            <div class="input-group">
+                <label for="password">Password:</label>
+                <input type="password" id="password" name="password"
+                       pattern="(?=.*[0-9])(?=.*[a-z])(?=.*[A-Z])(?=.*[!@#$%^&*_]).{8,16}"
+                       required>
+            </div>
 
-        <p>Password must be 8-16 characters and include at least one uppercase letter, one lowercase letter, one digit, and one special character (!@#$%^&*_).</p>
-        <button type="submit">Register</button>
-    </form>
+            <div class="password-requirements">
+                Password must be 8-16 characters and include at least one uppercase letter, one lowercase letter, one digit, and one special character (!@#$%^&*_).
+            </div>
 
-    <p>Already have an account? <a href="/login">Login here</a>.</p>
+            <button type="submit">Register</button>
+        </form>
+
+        <p>Already have an account? <a href="/login">Login here</a>.</p>
+    </div>
 </body>
 </html>

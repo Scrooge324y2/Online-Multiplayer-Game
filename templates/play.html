@@ -1,25 +1,40 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Play</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Play</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles/play.css') }}">
 </head>
 <body>
+    <div class="container">
+        <h1>Play Game</h1>
 
-  <!-- Create Game -->
-  <p><a href="/create_game">Create Game (Get Code)</a></p>
+        <!-- Create Game -->
+        <div class="game-mode">
+            <h2>Create Private Game</h2>
+            <p><a href="/create_game">Create Game (Get Code)</a></p>
+        </div>
 
-  <!-- Join Game -->
-  <form method="POST" action="/join_game">
-    <label for="game_code">Enter Game Code:</label>
-    <input type="text" id="game_code" name="game_code" required>
-    <button type="submit">Join Game</button>
-  </form>
+        <!-- Join Game -->
+        <div class="game-mode">
+            <h2>Join Private Game</h2>
+            <form method="POST" action="/join_game">
+                <label for="game_code">Enter Game Code:</label>
+                <input type="text" id="game_code" name="game_code" required>
+                <button type="submit">Join Game</button>
+            </form>
+        </div>
 
-  <!-- Matchmaking -->
-  <p><a href="/matchmaking">Find Opponent (Online Matchmaking)</a></p>
+        <!-- Matchmaking -->
+        <div class="game-mode">
+            <h2>Quick Match</h2>
+            <p><a href="/matchmaking">Find Opponent (Online Matchmaking)</a></p>
+        </div>
 
-  <p><a href="/menu">Back to Menu</a></p>
+        <div class="back-link">
+            <p><a href="/menu">← Back to Menu</a></p>
+        </div>
+    </div>
 </body>
 </html>

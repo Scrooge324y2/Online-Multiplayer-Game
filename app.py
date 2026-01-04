@@ -5,7 +5,7 @@ import random
 import string
 from game.game_manager import GameManager
 from game.matchmaking import MatchmakingQueue
-import socket
+
 
 app = Flask(__name__)
 app.secret_key = 'sadfsad'

@@ -2,15 +2,19 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>Title</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Main Menu</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles/menu.css') }}">
 </head>
 <body>
-    <h1>Main Menu</h1>
-    <p>username: {{username}}</p>
-    <nav>
-      <a href="/play">Play</a>
-      <a href="/leaderboard">Leaderboard</a>
-      <a href="/logout">Logout</a>
-    </nav>
+    <div class="container">
+        <h1>Main Menu</h1>
+        <p class="username">Welcome, <strong>{{username}}</strong></p>
+        <nav>
+            <a href="/play">Play</a>
+            <a href="/leaderboard">Leaderboard</a>
+            <a href="/logout">Logout</a>
+        </nav>
+    </div>
 </body>
 </html>

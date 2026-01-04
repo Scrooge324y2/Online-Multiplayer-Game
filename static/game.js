@@ -34,7 +34,7 @@ let chunkOffset = 0;
 let chunkWidth = 20; //tiles per chunk
 const tileSize = 40; //pixels per tile
 const height = 600;
-const MAX_JUMP_HEIGHT_TILES = 2;
+const MAX_JUMP_HEIGHT_TILES = 3;
 const JUMP_VELOCITY = Math.sqrt(2 * 400 * (MAX_JUMP_HEIGHT_TILES * tileSize));
 let mySocketId = null;
 let sceneContext = null;
@@ -292,10 +292,8 @@ function drawChunk(scene, chunk, offset) {
                 spikes.add(spike);
         }   }
     }
-    /*platforms.children.each((plat) => {
-        plat.body.updateFromGameObject();
-    });*/
     platforms.children.each(p => p.body.updateFromGameObject());
+    scene.physics.add.overlap(player, spikes, onSpikeHit, null, scene);
 
 
 }
@@ -314,6 +312,7 @@ function createSpike(scene, x, y) {
     // Physics hitbox
     const hitbox = scene.add.zone(x, y, tileSize * 0.8, tileSize * 0.6);
     scene.physics.add.existing(hitbox, true);
+    hitbox.body.updateFromGameObject();
 
     hitbox.isSpike = true;
 
@@ -329,8 +328,8 @@ function onSpikeHit(player, spike) {
     player.speed *= 0.9;
     player.slowTimer = 1.0;
 
-    // Optional: visual feedback
-    player.setFillStyle(0xff0000);
+    //visual feedback
+    player.setFillStyle(0xffff00);
 
     // Prevent multiple triggers per second
     this.time.delayedCall(300, () => {
