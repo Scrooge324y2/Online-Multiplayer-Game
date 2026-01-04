@@ -40,6 +40,10 @@ let mySocketId = null;
 let sceneContext = null;
 let lastSentX = null;
 let lastSentY = null;
+const SPEED_BOOST = 60;
+const BACKWARDS_SPEED = 30;
+const MAX_SPEED = 260;
+const SPEED_INCREASE_PER_SECOND = 2.5;
 
 function preload() {
 }
@@ -82,7 +86,8 @@ function create() {
     });
 
     platforms = this.physics.add.staticGroup();
-    //this.physics.add.overlap(player, spikes, onSpikeHit, null, this);
+    spikes = this.physics.add.staticGroup();
+    this.spikes = spikes;
     this.chunksLoaded = false;
     this.offset = 0;
     this.requestingChunk = false;
@@ -112,6 +117,9 @@ function create() {
     player.body.allowSleep = false;
     player.baseSpeed = 100;      // constant baseline
     player.speed = player.baseSpeed;
+    this.physics.add.overlap(player, spikes, onSpikeHit, null, this);
+
+
 
 
     cursors = this.input.keyboard.createCursorKeys();
@@ -192,19 +200,55 @@ function update(time, delta) {
 
     if (!player) return;
 
-    // Handle player movement
-    if (cursors.left.isDown) {
-        player.body.setVelocityX(-60);
-    }
-    else if (cursors.right.isDown) {
-        player.body.setVelocityX(160);
-    }
-    else {
-        player.body.setVelocityX(player.speed);
+    player.baseSpeed += SPEED_INCREASE_PER_SECOND * (delta / 1000); // Increase base speed over time
+    player.baseSpeed = Math.min(player.baseSpeed, MAX_SPEED);
+
+
+    const touchingGround = player.body.blocked.down;
+    const touchingWall = player.body.blocked.left || player.body.blocked.right;
+    const atBottomOfScreen = player.body.bottom >= sceneContext.cameras.main.worldView.bottom - 5;
+
+    const jumpPressed = Phaser.Input.Keyboard.JustDown(cursors.up);
+
+    let didWallJump = false;
+
+    if (player.slowTimer > 0) {
+        player.slowTimer -= delta / 1000;
+        if (player.slowTimer <= 0) {
+            player.speed = player.baseSpeed;
+        }
     }
 
-    if (cursors.up.isDown /*&& player.body.touching.down*/) {
+
+
+    // WALL JUMP
+    if (jumpPressed && touchingWall && !player.body.blocked.up) {
+        player.body.setVelocityY(-JUMP_VELOCITY * 0.85);
+
+        const push = player.body.blocked.left ? 180 : -180;
+        player.body.setVelocityX(push);
+        didWallJump = true;
+    }
+    // NORMAL JUMP
+    else if (jumpPressed && (touchingGround || atBottomOfScreen)) {
         player.body.setVelocityY(-JUMP_VELOCITY);
+    }
+
+    if (!didWallJump) {
+        if (cursors.left.isDown) {
+            player.body.setVelocityX(player.speed - (player.speed + BACKWARDS_SPEED));
+        }
+        else if (cursors.right.isDown) {
+            player.body.setVelocityX(player.speed + SPEED_BOOST);
+        }
+        else {
+            player.body.setVelocityX(player.speed);
+        }
+    }
+
+
+    if (cursors.down.isDown && !touchingGround) {
+        player.body.setVelocityY(200);
     }
 
     // Request new chunks
@@ -245,7 +289,7 @@ function drawChunk(scene, chunk, offset) {
                     (x + offset * chunk[y].length) * tileSize + tileSize / 2,
                     y * tileSize + tileSize/2
                 );
-                //spikes.add(spike);
+                spikes.add(spike);
         }   }
     }
     /*platforms.children.each((plat) => {
@@ -268,12 +312,8 @@ function createSpike(scene, x, y) {
     );
 
     // Physics hitbox
-    const hitbox = scene.physics.add.staticImage(x, y, null);
-    hitbox.body.setSize(tileSize * 0.8, tileSize * 0.6);
-    hitbox.body.setOffset(
-        -tileSize * 0.4,
-        -tileSize * 0.1
-    );
+    const hitbox = scene.add.zone(x, y, tileSize * 0.8, tileSize * 0.6);
+    scene.physics.add.existing(hitbox, true);
 
     hitbox.isSpike = true;
 
@@ -286,15 +326,15 @@ function onSpikeHit(player, spike) {
     player.spikeCooldown = true;
 
     // Apply slowdown
-    player.speed *= 0.65;
+    player.speed *= 0.9;
     player.slowTimer = 1.0;
 
     // Optional: visual feedback
-    player.setTint(0xff0000);
+    player.setFillStyle(0xff0000);
 
     // Prevent multiple triggers per second
     this.time.delayedCall(300, () => {
         player.spikeCooldown = false;
-        player.clearTint();
+        player.setFillStyle(0xff0000);
     });
 }

@@ -19,6 +19,7 @@ class GameManager:
         self._generator = ProceduralGenerator(seed=self._random_seed)
         self._started = False
         self._ready_sids = set()#
+        self._difficulty_increase_per_chunk = 5
 
 
 
@@ -65,6 +66,7 @@ class GameManager:
             print("ERROR: generator returned None, using flat chunk")
             chunk = self._generator.generate_flat_chunk(offset=offset)
         self._chunk_cache[offset] = chunk
+        self._generator.increase_difficulty(self._difficulty_increase_per_chunk)
         return chunk
 
 
