@@ -480,4 +480,4 @@ class ProceduralGenerator:
 
         # Checked all reachable positions without reaching end
         print(f" Dead end at x={max_x_reached}/{width - 1}")
-        return False, visited
+        return False, visited # returns a set of all reachable positions

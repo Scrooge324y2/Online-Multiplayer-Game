@@ -5,21 +5,17 @@ import random
 import string
 from game.game_manager import GameManager
 from game.matchmaking import MatchmakingQueue
+import socket
 
 
 app = Flask(__name__)
 app.secret_key = 'sadfsad'
-'''socketio = SocketIO(
-    app,
-    cors_allowed_origins="http://127.0.0.1:5000",
-    manage_session=True,
-)'''
+
 socketio = SocketIO(
     app,
-    cors_allowed_origins="http://127.0.0.1:5000",
+    cors_allowed_origins="*",
     manage_session=False,
     cookie='io',
-    #logger=True
 )
 
 games = {}
@@ -161,8 +157,25 @@ def game_over():
 
 
 
+def get_local_ip():
+    s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+    try:
+        s.connect(("8.8.8.8", 80))
+        ip = s.getsockname()[0]
+    except Exception:
+        ip = "localhost"
+    finally:
+        s.close()
+    return ip
+
 if __name__ == '__main__':
-    socketio.run(app, debug=True, port=5000)
+    #socketio.run(app, debug=True, port=5000)
+    ip = get_local_ip()
+    print(f"Server running on:")
+    print(f"  Local:   http://localhost:5000")
+    print(f"  Network: http://{ip}:5000")
+
+    socketio.run(app, host="0.0.0.0", port=5000)
 
 
 

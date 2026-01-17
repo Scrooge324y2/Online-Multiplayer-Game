@@ -54,12 +54,11 @@ function create() {
     sceneContext.initialChunkRequested = true;
     chunkOffset = 0;
     gameSocket.emit('requestChunk', 0);
-    console.log("Requested initial chunk");
 }
     sceneContext = this;
 
-    // Create socket connection "http://127.0.0.1:5000",
-    gameSocket = io("http://127.0.0.1:5000");
+    // Create socket connection to server
+    gameSocket = io();
 
     gameSocket.on("gameOver", (data) => {
         if (this.gameEnded) return;
@@ -71,17 +70,17 @@ function create() {
     });
 
     gameSocket.on("connect", () => {
-        console.log("Connected to server with ID:", gameSocket.id);
+        //console.log("Connected to server with ID:", gameSocket.id);
         mySocketId = gameSocket.id;
         gameSocket.emit("rejoinRoom");
-        console.log("calling rejoin room on connect");
+        //console.log("calling rejoin room on connect");
 
 
 
     });
 
     gameSocket.on("reconnect", () => {
-        console.warn("Socket reconnected, rejoining room");
+        //console.warn("Socket reconnected, rejoining room");
         gameSocket.emit("rejoinRoom");
     });
 
@@ -178,7 +177,6 @@ function create() {
             otherPlayer.destroy();
             otherPlayer = null;
         }
-        console.log("===========================\n");
     });
 
     // Store socket reference
@@ -255,7 +253,6 @@ function update(time, delta) {
     if (player.x > (chunkOffset - 2) * chunkWidth * tileSize && !sceneContext.requestingChunk) {
         sceneContext.requestingChunk = true;
         gameSocket.emit('requestChunk', parseInt(chunkOffset));
-        console.log("Requesting chunk:", chunkOffset);
     }
 
     // Send position to server
@@ -269,7 +266,6 @@ function update(time, delta) {
 }
 
 function drawChunk(scene, chunk, offset) {
-    console.log("Drawing chunk at offset:", offset);
     for (let y = 0; y < chunk.length; y++) {
         for (let x = 0; x < chunk[y].length; x++) {
             if (chunk[y][x] === 1) {
@@ -283,7 +279,6 @@ function drawChunk(scene, chunk, offset) {
                 scene.physics.add.existing(plat, true);
                 platforms.add(plat);
             }else if (chunk[y][x] === 2) {
-                console.log("Creating spike at:", x, y);
                 const spike = createSpike(
                     scene,
                     (x + offset * chunk[y].length) * tileSize + tileSize / 2,
