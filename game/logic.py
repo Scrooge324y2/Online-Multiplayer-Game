@@ -19,19 +19,13 @@ class BiomeType:
 
 class ObstacleType:
     SPIKE = 2
-    BOUNCE_PAD = 3
+
 
 
 class ProceduralGenerator:
     def __init__(self, seed=12):
         """
         Initialize procedural generator with adjustable difficulty.
-
-        difficulty: float from 0.5 (easy) to 2.0 (very hard)
-            - 0.5 = Easy (fewer spikes, more bounce pads, smaller gaps)
-            - 1.0 = Normal (balanced)
-            - 1.5 = Hard (more spikes, fewer bounce pads, bigger gaps)
-            - 2.0 = Very Hard (extreme challenge)
         """
         self.seed = seed
         self.difficulty = 0.5 #goes from 0.5 o 2.0
@@ -86,7 +80,6 @@ class ProceduralGenerator:
                 'obstacle_probability': 0.12,
                 'gap_probability': 0.2,
                 'spike_probability': 0.4,
-                'bounce_pad_probability': 0.15
             },
             BiomeType.HILLS: {
                 'height_multiplier': 7,
@@ -95,7 +88,6 @@ class ProceduralGenerator:
                 'obstacle_probability': 0.15,
                 'gap_probability': 0.25,
                 'spike_probability': 0.5,
-                'bounce_pad_probability': 0.2
             },
             BiomeType.MOUNTAINS: {
                 'height_multiplier': 9,
@@ -104,7 +96,6 @@ class ProceduralGenerator:
                 'obstacle_probability': 0.18,
                 'gap_probability': 0.3,
                 'spike_probability': 0.6,
-                'bounce_pad_probability': 0.25
             },
             BiomeType.CAVES: {
                 'height_multiplier': 6,
@@ -114,22 +105,18 @@ class ProceduralGenerator:
                 'gap_probability': 0.15,
                 'has_ceiling': True,
                 'spike_probability': 0.45,
-                'bounce_pad_probability': 0.2
             }
         }
 
         config = configs.get(biome, configs[BiomeType.PLAINS])
 
         # Apply difficulty scaling
-        # Harder = more spikes, fewer bounce pads, more/bigger gaps
         config['spike_probability'] *= self.difficulty
-        config['bounce_pad_probability'] /= self.difficulty
         config['gap_probability'] *= (0.5 + self.difficulty * 0.5)  # Gradually increase gaps
         config['platform_probability'] /= (0.8 + self.difficulty * 0.2)  # Slightly fewer platforms
 
         # Clamp values to reasonable ranges
         config['spike_probability'] = min(0.8, config['spike_probability'])
-        config['bounce_pad_probability'] = max(0.05, config['bounce_pad_probability'])
         config['gap_probability'] = min(0.5, config['gap_probability'])
 
         return config
@@ -398,11 +385,10 @@ class ProceduralGenerator:
             last_x, last_y = path[-1]
             land_y = last_y
 
-            # Fall until hitting solid ground or bounce pad
+            # Fall until hitting solid ground
             while land_y < height - 1:
                 below_solid = is_solid(last_x, land_y + 1)
-                below_bounce = (land_y + 1 < height and chunk[land_y + 1][last_x] == ObstacleType.BOUNCE_PAD)
-                if below_solid or below_bounce:
+                if below_solid:
                     break
                 land_y += 1
                 if not is_valid_position(last_x, land_y):
@@ -417,10 +403,8 @@ class ProceduralGenerator:
             neighbors = []
             on_ground = is_solid(x, y + 1)
 
-            # Check if on a bounce pad (counts as ground)
-            on_bounce_pad = (y + 1 < height and chunk[y + 1][x] == ObstacleType.BOUNCE_PAD)
 
-            if not on_ground and not on_bounce_pad:
+            if not on_ground:
                 return []
 
 
@@ -430,18 +414,15 @@ class ProceduralGenerator:
                 # Check if we can walk to next position
                 if is_valid_position(next_x, y):
                     next_ground = is_solid(next_x, y + 1)
-                    next_bounce = (y + 1 < height and chunk[y + 1][next_x] == ObstacleType.BOUNCE_PAD)
 
-                    if next_ground or next_bounce:
+                    if next_ground :
                         neighbors.append((next_x, y))
                     else:
                         # Walk off edge - fall straight down
                         fall_y = y
                         while fall_y < height - 1:
                             below_solid = is_solid(next_x, fall_y + 1)
-                            below_bounce = (
-                                        fall_y + 1 < height and chunk[fall_y + 1][next_x] == ObstacleType.BOUNCE_PAD)
-                            if below_solid or below_bounce:
+                            if below_solid:
                                 break
                             fall_y += 1
 
