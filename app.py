@@ -81,7 +81,7 @@ def leaderboard():
         return redirect(url_for('login'))
     top_players = User.get_top_10_by_wins()
     return render_template("leaderboard.html", players=top_players)
-    return "<h1>Leaderboard</h1>"
+
 
 
 @app.route("/logout")
@@ -155,6 +155,16 @@ def game_over():
         #return redirect(url_for("play"))
     return render_template("game_over.html")
 
+@app.route("/profile")
+def profile():
+    if 'username' not in session:
+        return redirect(url_for('login'))
+    user_id = session.get("user_id")
+    username = session.get("username")
+    game_history = User.get_game_history(user_id)
+    win_rate = User.get_win_rate(user_id)
+    total_games = len(game_history)
+    return render_template("profile.html", username=username, game_history=game_history, win_rate=win_rate, total_games=total_games)
 
 
 def get_local_ip():

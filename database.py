@@ -1,11 +1,9 @@
 import bcrypt
-from sqlalchemy import create_engine
-from sqlalchemy.orm import sessionmaker, declarative_base
+from sqlalchemy import create_engine, and_
+from sqlalchemy.orm import sessionmaker, declarative_base, aliased
 from sqlalchemy import Column, Time, DateTime, ForeignKey, Integer, NVARCHAR, Numeric, Sequence, select, VARCHAR
-from sqlalchemy.orm import relationship
 from sqlalchemy.sql import func, desc
 engine = create_engine('sqlite:///database.db', echo=True)
-#engine = create_engine('sqlite:///:memory:', echo=True)
 Base = declarative_base()
 Session = sessionmaker(bind=engine)
 session = Session()
@@ -65,6 +63,69 @@ class User(Base):
         results = session.execute(stmt).all()
         return results
 
+    @staticmethod
+    def get_game_history(user_id):
+        opponent_ug = aliased(UserGame)
+
+        games = (
+            session.execute(
+                select(Game, User)
+                .join(UserGame, UserGame.GameID == Game.GameID)
+                .join(opponent_ug, and_(
+                    opponent_ug.GameID == Game.GameID,
+                    opponent_ug.UserID != user_id
+                ))
+                .join(User, User.UserID == opponent_ug.UserID)
+                .where(UserGame.UserID == user_id)
+                .order_by(Game.GameID.desc())
+
+            )
+        ).all()
+        history = []
+
+
+        for game, opponent in games:
+            won = (game.WinnerID == user_id)
+
+            total_seconds = int((game.EndTime - game.StartTime).total_seconds())
+
+            minutes = total_seconds // 60
+            seconds = total_seconds % 60
+
+            history.append({
+                'won': won,
+                'duration': f"{minutes}:{seconds:02d}",
+                'date_played': game.StartTime.date(),
+                'opponent_username': opponent.Username
+            })
+        return history
+
+    @staticmethod
+    def get_win_rate(user_id):
+        games_played = session.execute(
+            select(func.count())
+            .select_from(UserGame)
+            .where(UserGame.UserID == user_id)
+        ).scalar()
+
+        if games_played == 0:
+            return 0.0
+
+        wins = session.execute(
+            select(func.count())
+            .select_from(Game)
+            .join(UserGame, UserGame.GameID == Game.GameID)
+            .where(
+                UserGame.UserID == user_id,
+                Game.WinnerID == user_id
+            )
+        ).scalar()
+
+        return round((wins / games_played) * 100, 2)
+
+
+
+
 class UserGame(Base):
     __tablename__ = 'user_games'
     UserID = Column(Integer, ForeignKey('users.UserID'), primary_key=True)
@@ -75,6 +136,7 @@ class UserGame(Base):
         user_game = UserGame(UserID=user_id, GameID=game_id)
         session.add(user_game)
         session.commit()
+
 
 class Game(Base):
     __tablename__ = 'games'
