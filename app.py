@@ -1,4 +1,4 @@
-from flask import Flask, render_template, request, redirect, url_for, session
+from flask import Flask, render_template, request, redirect, url_for, session, flash
 from flask_socketio import SocketIO
 from database import User
 import random
@@ -118,9 +118,6 @@ def create_game():
 def join_game():
     if 'username' not in session:
         return redirect(url_for('login'))
-    '''if session.get('game_code'):
-        print("Player attempted matchmaking while still in a game")
-        session.pop('game_code', None)'''
     code = request.form["game_code"].strip().upper()
     session['game_code'] = code
     return redirect(url_for("waiting_room", code=code))
@@ -165,6 +162,7 @@ def profile():
     win_rate = User.get_win_rate(user_id)
     total_games = len(game_history)
     return render_template("profile.html", username=username, game_history=game_history, win_rate=win_rate, total_games=total_games)
+
 
 
 def get_local_ip():

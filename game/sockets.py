@@ -80,8 +80,6 @@ def register_socket_events(socketio, games, matchmaking_queue):
             game.start_game()
             socketio.emit("startGame",{"players": game.get_players_values()},room=code)
 
-        #else:
-            #emit("syncState",{"players": game.get_players_values()})
 
     @socketio.on('requestChunk')
     def on_request_chunk(offset):
@@ -128,14 +126,6 @@ def register_socket_events(socketio, games, matchmaking_queue):
 
 
 
-
-    '''def handle_disconnect_timeout(game, sid):
-        time.sleep(5)
-
-        if game.is_still_disconnected(sid):
-            game.end_game(winner=game.get_other_player(sid))'''
-
-
     @socketio.on('disconnect')
     def on_disconnect():
         sid = request.sid
@@ -146,14 +136,31 @@ def register_socket_events(socketio, games, matchmaking_queue):
 
 
         code = session.get('game_code')
-        #game = games[code] if code else None
 
         print(f'\n=== DISCONNECT ===')
         print(f"username: {session.get('username')}")
         print(f'Client disconnected: {sid}')
         print(f'Game code: {code}')
 
-        #socketio.start_background_task(handle_disconnect_timeout, game, request.sid)
+        # Handle active game
+        if not code or code not in games:
+            return
+
+        game = games[code]
+
+        if game.is_over():
+            return
+
+        opponent_id = game.get_opponent_user_id(session['user_id'])
+        opponent_username = game.get_opponent_username(session['user_id'])
+
+        if opponent_id:
+            game.end_game(opponent_id)
+
+            socketio.emit('gameOver',{'winnerUsername': opponent_username, 'reason': 'opponent_left'},room=code)
+
+        del games[code]
+
 
 
 

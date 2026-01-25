@@ -33,7 +33,10 @@ class GameManager:
 
         if len(self._players) >= self._max_players:
             return False
-        self._players[user_id] = {'sid': sid, 'username':username, 'x': 100, 'y': 450}
+        self._players[user_id] = {'sid': sid,
+                                  'username':username,
+                                  'x': 100,
+                                  'y': 450}
         return True
 
     def remove_player(self, sid):
@@ -166,6 +169,20 @@ class GameManager:
 
     def can_start(self):
         return self.all_ready() and not self._started
+
+    def get_opponent_user_id(self, user_id):
+        for other_user_id in self._players:
+            if other_user_id != user_id:
+                return other_user_id
+        return None
+
+    def get_opponent_username(self, user_id):
+        opponent_id = self.get_opponent_user_id(user_id)
+        if opponent_id is None:
+            return None
+        return self._players[opponent_id]["username"]
+
+
 
 
 
