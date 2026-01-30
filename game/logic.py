@@ -8,6 +8,7 @@ PLAYER_MAX_JUMP_HEIGHT = 3
 PLAYER_MAX_JUMP_DISTANCE = 4
 MAX_PLATFORM_HEIGHT_ABOVE = 6
 MIN_PLATFORM_HEIGHT_ABOVE = 3
+MAX_PIT_DEPTH = PLAYER_MAX_JUMP_HEIGHT
 
 
 class BiomeType:
@@ -245,7 +246,18 @@ class ProceduralGenerator:
         gaps = self.generate_gaps(heights, width, offset, biome_config)#add gaps
         for gap_x, gap_width in gaps:
             for x in range(gap_x, min(gap_x + gap_width, width)):
+                surface_y = None
                 for y in range(height):
+                    if chunk[y][x] == 1:
+                        surface_y = y
+                        break
+
+                if surface_y is None:
+                    continue
+
+                pit_bottom = min(height - 1, surface_y + MAX_PIT_DEPTH)
+
+                for y in range(surface_y, pit_bottom):
                     chunk[y][x] = 0
 
         platforms = self.generate_floating_platforms(heights, width, height, offset, biome_config) #add floating platforms
@@ -399,8 +411,8 @@ class ProceduralGenerator:
 
             return (last_x, land_y)
 
-        def get_neighbors(x, y):
-            neighbors = []
+        def get_neighbours(x, y):
+            neighbours = []
             on_ground = is_solid(x, y + 1)
 
 
@@ -416,7 +428,7 @@ class ProceduralGenerator:
                     next_ground = is_solid(next_x, y + 1)
 
                     if next_ground :
-                        neighbors.append((next_x, y))
+                        neighbours.append((next_x, y))
                     else:
                         # Walk off edge - fall straight down
                         fall_y = y
@@ -427,7 +439,7 @@ class ProceduralGenerator:
                             fall_y += 1
 
                         if fall_y < height and is_valid_position(next_x, fall_y):
-                            neighbors.append((next_x, fall_y))
+                            neighbours.append((next_x, fall_y))
 
             # Try jumps of different distances
             for jump_dist in [PLAYER_MAX_JUMP_DISTANCE, PLAYER_MAX_JUMP_DISTANCE - 1, PLAYER_MAX_JUMP_DISTANCE - 2]:
@@ -437,10 +449,10 @@ class ProceduralGenerator:
                 if jump_landing:
                     land_x, land_y = jump_landing
                     if land_y < height:
-                        if jump_landing not in neighbors:
-                            neighbors.append(jump_landing)
+                        if jump_landing not in neighbours:
+                            neighbours.append(jump_landing)
 
-            return neighbors
+            return neighbours
 
         # Find starting position
         start_x = 0
@@ -472,8 +484,8 @@ class ProceduralGenerator:
             if x >= width - 1:
                 return True, visited
 
-            # Explore neighbors
-            for next_x, next_y in get_neighbors(x, y):
+            # Explore neighbours
+            for next_x, next_y in get_neighbours(x, y):
                 if (next_x, next_y) not in visited:
                     visited.add((next_x, next_y))
                     queue.append((next_x, next_y))
