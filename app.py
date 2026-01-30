@@ -135,9 +135,6 @@ def waiting_room():
 def matchmaking():
     if 'username' not in session:
         return redirect(url_for('login'))
-    '''if session.get('game_code'):
-        print("Player attempted matchmaking while still in a game")
-        session.pop('game_code', None)'''
     session['in_matchmaking'] = True
     return render_template("matchmaking.html")
 
@@ -147,9 +144,6 @@ def game_over():
         return redirect(url_for('login'))
     if "game_code" not in session:
         return redirect(url_for("play"))
-    #code = session["game_code"]
-    #if code not in games:
-        #return redirect(url_for("play"))
     return render_template("game_over.html")
 
 @app.route("/profile")
@@ -177,7 +171,6 @@ def get_local_ip():
     return ip
 
 if __name__ == '__main__':
-    #socketio.run(app, debug=True, port=5000)
     ip = get_local_ip()
     print(f"Server running on:")
     print(f"  Local:   http://localhost:5000")

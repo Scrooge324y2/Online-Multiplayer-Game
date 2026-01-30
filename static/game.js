@@ -179,8 +179,16 @@ function create() {
         }
     });
 
+    gameSocket.on('redirect_to_play', () => {
+        sessionStorage.removeItem("loadedBefore");
+        sessionStorage.setItem("flashMessage", "You were disconnected from the game.");
+        window.location.replace("/play")
+    });
+
     // Store socket reference
     this.gameSocket = gameSocket;
+
+
 }
 
 

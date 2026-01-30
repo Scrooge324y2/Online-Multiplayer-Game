@@ -68,6 +68,10 @@ def register_socket_events(socketio, games, matchmaking_queue):
     @socketio.on('rejoinRoom')
     def rejoin_room():
         code = session.get("game_code")
+        if code not in games:
+            print("REDIRECTING TO PLAY")
+            emit("redirect_to_play") #redirect player to lobby if they are not part of a game (happens when reloading)
+            return
         game = games[code]
 
         game.update_sid(session['user_id'], request.sid)
