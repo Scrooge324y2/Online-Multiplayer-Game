@@ -119,8 +119,11 @@ def join_game():
     if 'username' not in session:
         return redirect(url_for('login'))
     code = request.form["game_code"].strip().upper()
-    session['game_code'] = code
-    return redirect(url_for("waiting_room", code=code))
+    if code in games:
+        session['game_code'] = code
+        return redirect(url_for("waiting_room", code=code))
+    else:
+        return render_template("play.html", error="Game code not found.")
 
 
 @app.route("/waiting_room")

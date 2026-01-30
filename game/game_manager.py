@@ -129,8 +129,12 @@ class GameManager:
         self._started = True
         self._start_time = datetime.now()
 
-    def end_game(self, winner_user_id):
+    def end_game(self, winner_user_id, reason):
         print("Ending game...")
+        if reason == "opponent_left":
+            self._is_over = True
+            return
+
         if not self._is_over:
             game_id = Game.add_game(
                 winnerID=winner_user_id,

@@ -159,7 +159,7 @@ def register_socket_events(socketio, games, matchmaking_queue):
         opponent_username = game.get_opponent_username(session['user_id'])
 
         if opponent_id:
-            game.end_game(opponent_id)
+            game.end_game(opponent_id, reason='opponent_left')
 
 
             socketio.emit('gameOver',{'winnerUsername': opponent_username, 'reason': 'opponent_left'},room=code)

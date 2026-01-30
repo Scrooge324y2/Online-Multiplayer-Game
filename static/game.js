@@ -91,7 +91,6 @@ function create() {
     this.offset = 0;
     this.requestingChunk = false;
     this.serverReady = false;
-    //sceneContext.cameras.main.startFollow(player, true, 0.1, 0.1);
 
     // Handle map chunks
     gameSocket.on('map', (data) => {
