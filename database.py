@@ -1,8 +1,11 @@
+import secrets
+
 import bcrypt
 from sqlalchemy import create_engine, and_
 from sqlalchemy.orm import sessionmaker, declarative_base, aliased
-from sqlalchemy import Column, Time, DateTime, ForeignKey, Integer, NVARCHAR, Numeric, Sequence, select, VARCHAR
+from sqlalchemy import Column, Time, DateTime, ForeignKey, Integer, NVARCHAR, Numeric, Sequence, select, VARCHAR, Boolean
 from sqlalchemy.sql import func, desc
+import secrets
 engine = create_engine('sqlite:///database.db', echo=True)
 Base = declarative_base()
 Session = sessionmaker(bind=engine)
@@ -14,6 +17,23 @@ class User(Base):
     UserID = Column(Integer, Sequence('user_id_seq'), primary_key=True) #Sequence() automatically increments the UserID
     Username = Column(VARCHAR, nullable=False)
     BcryptHash = Column(VARCHAR, nullable=False)
+    RecoveryKeyHash = Column(VARCHAR, nullable=True)
+    IsActive = Column(Boolean, nullable=False)
+
+
+    @staticmethod
+    def create_recovery_key(user_id):
+        """Generates a secure recovery key for the user, stores it hashed in the database,
+        and returns the plaintext key to be shown once to the user"""
+        recovery_key = secrets.token_urlsafe(16) # generates a secure random recovery key
+        hashed_key = bcrypt.hashpw(recovery_key.encode('utf-8'), bcrypt.gensalt()).decode('utf-8') # hashes the recovery key
+        user = session.get(User, user_id)
+        if not user:
+            return False
+        user.RecoveryKeyHash = hashed_key
+        session.commit()
+
+        return recovery_key
                         
 
     @staticmethod #doesn't require an instance of the class to be called
@@ -21,9 +41,48 @@ class User(Base):
         passwordBytes = password.encode('utf-8') # converting password to array of bytes
         salt = bcrypt.gensalt()
         hashedPw = bcrypt.hashpw(passwordBytes, salt).decode('utf-8') # hashing the password
-        user = User(Username=username, BcryptHash=hashedPw)
+        user = User(Username=username, BcryptHash=hashedPw, IsActive=True)
         session.add(user)
         session.commit()
+
+    @staticmethod
+    def authenticate_recovery_key(user_id, recovery_key_entered):
+        user = session.get(User, user_id)
+        if not user:
+            return False
+        stored_hash = user.RecoveryKeyHash.encode('utf-8')
+        return bcrypt.checkpw(recovery_key_entered.encode('utf-8'), stored_hash)
+
+    @staticmethod
+    def deactivate_user(user_id):
+        user = session.get(User, user_id)
+        if not user:
+            return False
+        user.IsActive = False
+        user.Username = f"Deactivated_User{user_id}"
+        session.commit()
+        return True
+
+    @staticmethod
+    def change_password(user_id, new_password):
+        user = session.get(User, user_id)
+        if not user:
+            return False
+        passwordBytes = new_password.encode('utf-8')  # converting password to array of bytes
+        salt = bcrypt.gensalt()
+        hashedPw = bcrypt.hashpw(passwordBytes, salt).decode('utf-8')
+        user.BcryptHash = hashedPw
+        session.commit()
+
+    @staticmethod
+    def change_username(user_id, new_username):
+        user = session.get(User, user_id)
+        if not user:
+            return False
+        user.Username = new_username
+        session.commit()
+        return True
+
 
     @staticmethod
     def validate_username(username): #checks if a specific username exists in the database (usernames are unique)

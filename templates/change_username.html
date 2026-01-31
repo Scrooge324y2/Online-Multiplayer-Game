@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Change Username</title>
+</head>
+<body>
+    <h1>Change Username</h1>
+
+    <!-- Display flash messages -->
+    {% with messages = get_flashed_messages(with_categories=true) %}
+      {% if messages %}
+        <ul>
+          {% for category, message in messages %}
+            <li>{{ message }}</li>
+          {% endfor %}
+        </ul>
+      {% endif %}
+    {% endwith %}
+
+    <form method="POST" action="{{ url_for('change_username') }}">
+        <div>
+            <label for="new_username">New Username:</label>
+            <input type="text" id="new_username" name="new_username"
+                   pattern="[A-Za-z0-9_]{3,20}"
+                   title="3-20 characters, letters, numbers, or underscore"
+                   required>
+        </div>
+
+        <button type="submit">Change Username</button>
+    </form>
+
+    <p><a href="{{ url_for('profile') }}">Back to Profile</a></p>
+</body>
+</html>

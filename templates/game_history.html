@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Game History</title>
+</head>
+<body>
+
+    <h1>{{ username }}'s Game History</h1>
+
+    <p><strong>Win rate:</strong> {{ win_rate }}%</p>
+    <p><strong>Total games played:</strong> {{ total_games }}</p>
+
+    <h2>Game History</h2>
+
+    {% if game_history %}
+        <table border="1">
+            <thead>
+                <tr>
+                    <th>Opponent</th>
+                    <th>Won</th>
+                    <th>Duration</th>
+                    <th>Date</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for game in game_history %}
+                    <tr>
+                        <td>{{ game.opponent_username }}</td>
+                        <td>{{ 'Yes' if game.won else 'No' }}</td>
+                        <td>{{ game.duration }}</td>
+                        <td>{{ game.date_played }}</td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    {% else %}
+        <p>No games played yet.</p>
+    {% endif %}
+    <button onclick="window.location.href='/profile'">Back to Profile</button>
+</body>
+</html>

@@ -66,7 +66,9 @@ def register():
         if not User.validate_username(username):
             return render_template("register.html", error="Username already in use")
         User.add_user(username, password)
-        return redirect(url_for('login'))
+        session['username'] = username
+        session['user_id'] = User.get_user_id(username)
+        return redirect(url_for('recovery_key'))
     return render_template("register.html")
 
 @app.route("/menu")
@@ -153,12 +155,112 @@ def game_over():
 def profile():
     if 'username' not in session:
         return redirect(url_for('login'))
+    username = session.get("username")
+    return render_template("profile.html", username=username)
+
+@app.route("/forgot_password", methods=["GET", "POST"])
+def forgot_password():
+    if request.method == "POST":
+        username = request.form["username"]
+        new_password = request.form["new_password"]
+        recovery_key = request.form["recovery_key"]
+
+        user_id = User.get_user_id(username)
+        if user_id is None:
+            flash("Username not found.", "error")
+            return redirect(url_for("forgot_password"))
+
+        if User.authenticate_recovery_key(user_id, recovery_key):
+            User.change_password(user_id, new_password)
+            flash("Password reset successfully.", "success")
+            return redirect(url_for("login"))
+        else:
+            flash("Invalid recovery key.", "error")
+            return redirect(url_for("forgot_password"))
+    return render_template("forgot_password.html")
+
+@app.route("/delete_account", methods=["GET", "POST"])
+def delete_account():
+    if 'username' not in session:
+        return redirect(url_for('login'))
+
+    if request.method == "POST":
+        password = request.form["password"]
+        username = session.get("username")
+        user_id = session.get("user_id")
+
+        if User.authenticate_user(username, password):
+            User.deactivate_user(user_id)
+            session.pop("username", None)
+            session.pop("user_id", None)
+            flash("Account deleted successfully.", "success")
+            return redirect(url_for("register"))
+        else:
+            flash("Password is incorrect.", "error")
+            return redirect(url_for("delete_account"))
+    return render_template("delete_account.html")
+
+@app.route("/change_password", methods=["GET", "POST"])
+def change_password():
+    if 'username' not in session:
+        return redirect(url_for('login'))
+
+    if request.method == "POST":
+        current_password = request.form["current_password"]
+        new_password = request.form["new_password"]
+        confirm_password = request.form["confirm_password"]
+        username = session.get("username")
+        user_id = session.get("user_id")
+
+        if User.authenticate_user(username, current_password):
+            User.change_password(user_id, new_password)
+            flash("Password changed successfully.", "success")
+            return redirect(url_for("profile"))
+        else:
+            flash("Current password is incorrect.", "error")
+            return redirect(url_for("change_password"))
+    return render_template("change_password.html")
+
+
+@app.route("/change_username", methods=["GET", "POST"])
+def change_username():
+    if 'username' not in session:
+        return redirect(url_for('login'))
+
+    if request.method == "POST":
+        new_username = request.form["new_username"]
+        user_id = session.get("user_id")
+
+        if not User.validate_username(new_username):
+            flash("Username already in use.", "error")
+            return redirect(url_for("change_username"))
+
+        User.change_username(user_id, new_username)
+        session['username'] = new_username
+        session.modified = True
+        flash("Username changed successfully.", "success")
+        return redirect(url_for("profile"))
+
+
+    return render_template("change_username.html")
+
+@app.route("/recovery_key")
+def recovery_key():
+    if 'username' not in session:
+        return redirect(url_for('login'))
+    key = User.create_recovery_key(session.get("user_id"))
+    return render_template("recovery_key.html", recovery_key=key)
+
+@app.route("/game_history")
+def game_history():
+    if 'username' not in session:
+        return redirect(url_for('login'))
     user_id = session.get("user_id")
     username = session.get("username")
     game_history = User.get_game_history(user_id)
     win_rate = User.get_win_rate(user_id)
     total_games = len(game_history)
-    return render_template("profile.html", username=username, game_history=game_history, win_rate=win_rate, total_games=total_games)
+    return render_template("game_history.html", username=username, game_history=game_history, win_rate=win_rate, total_games=total_games)
 
 
 
