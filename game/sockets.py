@@ -122,7 +122,7 @@ def register_socket_events(socketio, games, matchmaking_queue):
                 print(f"Game over! Winner: {winner_user_id} Reason: {reason}")
                 if session['user_id'] == winner_user_id:
                     winner_username = session.get("username")
-                    game.end_game(session.get("user_id"))
+                    game.end_game(session.get("user_id"), reason=None)
                     socketio.emit('gameOver', {'winnerUsername': winner_username,'reason': reason}, room=code)
                     del games[code]
                     session.pop('game_code', None)
