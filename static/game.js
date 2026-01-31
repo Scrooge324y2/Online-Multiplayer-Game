@@ -145,24 +145,6 @@ function create() {
         }
     });
 
-    gameSocket.on('syncState', (data) => {
-        sceneContext.serverReady = true;
-        requestInitialChunkOnce();
-        const myPlayer = data.players.find(p => p.id === mySocketId);
-        const other = data.players.find(p => p.id !== mySocketId);
-
-        if (myPlayer) {
-            player.x = myPlayer.x;
-            player.y = myPlayer.y;
-        }
-
-        if (other && otherPlayer) {
-            otherPlayer.x = other.x;
-            otherPlayer.y = other.y;
-        }
-    });
-
-
     // Handle other player movement
     gameSocket.on("playerMoved", (data) => {
         if (data.id === mySocketId || !otherPlayer) return;
