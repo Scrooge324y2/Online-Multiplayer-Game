@@ -61,7 +61,8 @@ def login():
             session.modified = True
             return redirect(url_for('menu'))
         else:
-            return render_template("login.html", error="Invalid username or password")
+            flash("Incorrect username or password", "error")
+            return redirect(url_for('login'))
     return render_template("login.html")
 
 @app.route('/register', methods=['GET', 'POST'])
@@ -69,13 +70,16 @@ def register():
     if request.method == 'POST':
         username = request.form['username']
         password = request.form['password']
-        print(username, password)
+
         if not User.validate_username(username):
-            return render_template("register.html", error="Username already in use")
+            flash("Username is already in use", "error")
+            return redirect(url_for('register'))
         User.add_user(username, password)
         session['username'] = username
         session['user_id'] = User.get_user_id(username)
-        return redirect(url_for('recovery_key'))
+        key = User.create_recovery_key(session['user_id'])
+        session['recovery_key'] = key
+        return redirect(url_for('show_recovery_key'))
     return render_template("register.html")
 
 @app.route("/menu")
@@ -127,7 +131,8 @@ def join_game():
         session['game_code'] = code
         return redirect(url_for("waiting_room", code=code))
     else:
-        return render_template("play.html", error="Game code not found.")
+        flash("Invalid game code.", "error")
+        return redirect(url_for("play"))
 
 
 @app.route("/waiting_room")
@@ -238,9 +243,29 @@ def change_username():
 
 @app.route("/recovery_key")
 @login_required
-def recovery_key():
-    key = User.create_recovery_key(session.get("user_id"))
+def show_recovery_key():
+    key = session.pop("recovery_key", None) # Retrieve and remove the recovery key from session
+    if key is None:
+        return redirect(url_for("menu"))
+
     return render_template("recovery_key.html", recovery_key=key)
+
+@app.route("/new_recovery_key", methods=["GET", "POST"])
+@login_required
+def new_recovery_key():
+    if request.method == "POST":
+        password = request.form["password"]
+        username = session.get("username")
+        user_id = session.get("user_id")
+        
+        if User.authenticate_user(username, password):
+            key = User.create_recovery_key(user_id, new_key=True)
+            session["recovery_key"] = key
+            return redirect(url_for("show_recovery_key"))
+        else:
+            flash("Password is incorrect.", "error")
+            return redirect(url_for("new_recovery_key"))
+    return render_template("new_recovery_key.html")
 
 @app.route("/game_history")
 @login_required

@@ -22,14 +22,18 @@ class User(Base):
 
 
     @staticmethod
-    def create_recovery_key(user_id):
+    def create_recovery_key(user_id, new_key=False):
         """Generates a secure recovery key for the user, stores it hashed in the database,
         and returns the plaintext key to be shown once to the user"""
-        recovery_key = secrets.token_urlsafe(16) # generates a secure random recovery key
-        hashed_key = bcrypt.hashpw(recovery_key.encode('utf-8'), bcrypt.gensalt()).decode('utf-8') # hashes the recovery key
         user = session.get(User, user_id)
         if not user:
             return False
+
+        if user.RecoveryKeyHash is not None and not new_key:
+            print(f"NEW KEY = {new_key}")
+            return None
+        recovery_key = secrets.token_urlsafe(16) # generates a secure random recovery key
+        hashed_key = bcrypt.hashpw(recovery_key.encode('utf-8'), bcrypt.gensalt()).decode('utf-8') # hashes the recovery key
         user.RecoveryKeyHash = hashed_key
         session.commit()
 

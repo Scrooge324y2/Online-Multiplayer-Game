@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Generate New Recovery Key</title>
+</head>
+<body>
+
+<h1>Generate New Recovery Key</h1>
+
+<p>
+    Generating a new recovery key will invalidate your existing one.
+    You will only be shown the new key once.
+</p>
+
+{% with messages = get_flashed_messages(with_categories=true) %}
+  {% if messages %}
+    <ul>
+      {% for category, message in messages %}
+        <li>{{ message }}</li>
+      {% endfor %}
+    </ul>
+  {% endif %}
+{% endwith %}
+
+<form method="POST" action="{{ url_for('new_recovery_key') }}">
+    <label for="password">Confirm password:</label><br>
+    <input type="password" id="password" name="password" required><br><br>
+
+    <button type="submit">Generate new recovery key</button>
+</form>
+
+<p>
+    <a href="{{ url_for('profile') }}">Cancel and return to profile</a>
+</p>
+
+</body>
+</html>
