@@ -36,7 +36,7 @@ class User(Base):
         return recovery_key
                         
 
-    @staticmethod #doesn't require an instance of the class to be called
+    @staticmethod
     def add_user(username, password):
         passwordBytes = password.encode('utf-8') # converting password to array of bytes
         salt = bcrypt.gensalt()

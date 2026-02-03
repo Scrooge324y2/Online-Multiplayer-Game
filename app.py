@@ -6,6 +6,7 @@ import string
 from game.game_manager import GameManager
 from game.matchmaking import MatchmakingQueue
 import socket
+from functools import wraps
 
 
 app = Flask(__name__)
@@ -22,13 +23,19 @@ games = {}
 from game.sockets import register_socket_events
 register_socket_events(socketio, games, MatchmakingQueue())
 
+def login_required(f):
+    @wraps(f)
+    def decorated_function(*args, **kwargs):
+        if 'username' not in session:
+            return redirect(url_for('login'))
+        return f(*args, **kwargs)
+    return decorated_function
+
 
 #@app.route('/')
 @app.route('/game')
+@login_required
 def game():
-    if 'username' not in session:
-        return redirect(url_for('login'))
-
     code = request.args.get('code') or session.get('game_code')
 
     if not code:
@@ -72,15 +79,13 @@ def register():
     return render_template("register.html")
 
 @app.route("/menu")
+@login_required
 def menu():
-    if "username" not in session:
-        return redirect(url_for("login"))
     return render_template("menu.html", username=session.get("username"))
 
 @app.route("/leaderboard")
+@login_required
 def leaderboard():
-    if 'username' not in session:
-        return redirect(url_for('login'))
     top_players = User.get_top_10_by_wins()
     return render_template("leaderboard.html", players=top_players)
 
@@ -93,9 +98,8 @@ def logout():
 
 #@app.route("/")
 @app.route("/play")
+@login_required
 def play():
-    if 'username' not in session:
-        return redirect(url_for('login'))
     return render_template("play.html")
 
 def generate_code():
@@ -106,9 +110,8 @@ def generate_code():
 
 
 @app.route("/create_game")
+@login_required
 def create_game():
-    if 'username' not in session:
-        return redirect(url_for('login'))
     code = generate_code()
     new_game = GameManager(code)
     games[code] = new_game
@@ -117,9 +120,8 @@ def create_game():
     return redirect(url_for("waiting_room", code=code))
 
 @app.route("/join_game", methods=["POST"])
+@login_required
 def join_game():
-    if 'username' not in session:
-        return redirect(url_for('login'))
     code = request.form["game_code"].strip().upper()
     if code in games:
         session['game_code'] = code
@@ -129,32 +131,28 @@ def join_game():
 
 
 @app.route("/waiting_room")
+@login_required
 def waiting_room():
-    if 'username' not in session:
-        return redirect(url_for('login'))
     if "game_code" not in session:
         return redirect(url_for("play"))
     return render_template("waiting_room.html", code=session["game_code"])
 
 @app.route("/matchmaking")
+@login_required
 def matchmaking():
-    if 'username' not in session:
-        return redirect(url_for('login'))
     session['in_matchmaking'] = True
     return render_template("matchmaking.html")
 
 @app.route("/game_over")
+@login_required
 def game_over():
-    if 'username' not in session:
-        return redirect(url_for('login'))
     if "game_code" not in session:
         return redirect(url_for("play"))
     return render_template("game_over.html")
 
 @app.route("/profile")
+@login_required
 def profile():
-    if 'username' not in session:
-        return redirect(url_for('login'))
     username = session.get("username")
     return render_template("profile.html", username=username)
 
@@ -180,10 +178,8 @@ def forgot_password():
     return render_template("forgot_password.html")
 
 @app.route("/delete_account", methods=["GET", "POST"])
+@login_required
 def delete_account():
-    if 'username' not in session:
-        return redirect(url_for('login'))
-
     if request.method == "POST":
         password = request.form["password"]
         username = session.get("username")
@@ -201,10 +197,8 @@ def delete_account():
     return render_template("delete_account.html")
 
 @app.route("/change_password", methods=["GET", "POST"])
+@login_required
 def change_password():
-    if 'username' not in session:
-        return redirect(url_for('login'))
-
     if request.method == "POST":
         current_password = request.form["current_password"]
         new_password = request.form["new_password"]
@@ -223,10 +217,8 @@ def change_password():
 
 
 @app.route("/change_username", methods=["GET", "POST"])
+@login_required
 def change_username():
-    if 'username' not in session:
-        return redirect(url_for('login'))
-
     if request.method == "POST":
         new_username = request.form["new_username"]
         user_id = session.get("user_id")
@@ -245,16 +237,14 @@ def change_username():
     return render_template("change_username.html")
 
 @app.route("/recovery_key")
+@login_required
 def recovery_key():
-    if 'username' not in session:
-        return redirect(url_for('login'))
     key = User.create_recovery_key(session.get("user_id"))
     return render_template("recovery_key.html", recovery_key=key)
 
 @app.route("/game_history")
+@login_required
 def game_history():
-    if 'username' not in session:
-        return redirect(url_for('login'))
     user_id = session.get("user_id")
     username = session.get("username")
     game_history = User.get_game_history(user_id)
