@@ -2,41 +2,78 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Game History</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles/game_history.css') }}">
 </head>
 <body>
+    <div class="container">
+        <div class="card">
+            <div class="card-body">
+                <h1 class="text-center mb-4">{{ username }}'s Game History</h1>
 
-    <h1>{{ username }}'s Game History</h1>
+                <div class="stats-cards row mb-4">
+                    <div class="col-md-6 mb-3">
+                        <div class="card bg-primary text-white">
+                            <div class="card-body text-center">
+                                <h5 class="card-title">Win Rate</h5>
+                                <h2 class="display-4">{{ win_rate }}%</h2>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-6 mb-3">
+                        <div class="card bg-info text-white">
+                            <div class="card-body text-center">
+                                <h5 class="card-title">Total Games</h5>
+                                <h2 class="display-4">{{ total_games }}</h2>
+                            </div>
+                        </div>
+                    </div>
+                </div>
 
-    <p><strong>Win rate:</strong> {{ win_rate }}%</p>
-    <p><strong>Total games played:</strong> {{ total_games }}</p>
+                <h2 class="mb-3">Match History</h2>
 
-    <h2>Game History</h2>
+                {% if game_history %}
+                    <div class="table-responsive">
+                        <table class="table table-hover">
+                            <thead>
+                                <tr>
+                                    <th>Opponent</th>
+                                    <th>Result</th>
+                                    <th>Duration</th>
+                                    <th>Date</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for game in game_history %}
+                                <tr class="{% if game.won %}table-success{% else %}table-danger{% endif %}">
+                                    <td>{{ game.opponent_username }}</td>
+                                    <td>
+                                        {% if game.won %}
+                                            <span class="badge bg-success">Win</span>
+                                        {% else %}
+                                            <span class="badge bg-danger">Loss</span>
+                                        {% endif %}
+                                    </td>
+                                    <td>{{ game.duration }}</td>
+                                    <td>{{ game.date_played }}</td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                {% else %}
+                    <div class="alert alert-info">
+                        No games played yet. Start playing to build your history!
+                    </div>
+                {% endif %}
 
-    {% if game_history %}
-        <table border="1">
-            <thead>
-                <tr>
-                    <th>Opponent</th>
-                    <th>Won</th>
-                    <th>Duration</th>
-                    <th>Date</th>
-                </tr>
-            </thead>
-            <tbody>
-                {% for game in game_history %}
-                    <tr>
-                        <td>{{ game.opponent_username }}</td>
-                        <td>{{ 'Yes' if game.won else 'No' }}</td>
-                        <td>{{ game.duration }}</td>
-                        <td>{{ game.date_played }}</td>
-                    </tr>
-                {% endfor %}
-            </tbody>
-        </table>
-    {% else %}
-        <p>No games played yet.</p>
-    {% endif %}
-    <button onclick="window.location.href='/profile'">Back to Profile</button>
+                <button onclick="window.location.href='/profile'" class="btn btn-primary w-100">Back to Profile</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
 </body>
 </html>

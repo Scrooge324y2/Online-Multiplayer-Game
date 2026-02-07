@@ -9,7 +9,7 @@ body {
 }
 
 .container {
-    max-width: 500px;
+    max-width: 600px;
     width: 100%;
 }
 
@@ -22,7 +22,7 @@ body {
 }
 
 .card-body {
-    padding: 40px;
+    padding: 50px;
 }
 
 h1 {
@@ -31,36 +31,42 @@ h1 {
     font-weight: 600;
 }
 
-.form-label {
-    color: #333;
-    font-weight: 500;
-    font-size: 14px;
+.lead {
+    color: #666;
+    font-size: 18px;
+    margin-bottom: 20px;
 }
 
-.form-control {
-    border: 2px solid #e0e0e0;
+.recovery-key-display {
+    background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+    padding: 30px;
+    border-radius: 15px;
+    border: 3px dashed #667eea;
+    margin: 20px 0;
+}
+
+.recovery-key-display h2 {
+    color: #667eea;
+    font-size: 28px;
+    font-weight: 700;
+    letter-spacing: 2px;
+    word-break: break-all;
+    font-family: 'Courier New', monospace;
+}
+
+.btn-success {
+    background: linear-gradient(135deg, #43e97b 0%, #38f9d7 100%);
+    border: none;
     border-radius: 10px;
-    padding: 12px 15px;
+    padding: 12px 30px;
     font-size: 16px;
-    background: #f8f9fa;
+    font-weight: 600;
     transition: all 0.3s ease;
 }
 
-.form-control:focus {
-    border-color: #667eea;
-    background: white;
-    box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
-}
-
-.password-requirements {
-    background: #e8f4f8;
-    border: none;
-    border-left: 4px solid #667eea;
-    font-size: 13px;
-    color: #555;
-    line-height: 1.6;
-    padding: 12px;
-    border-radius: 8px;
+.btn-success:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 25px rgba(67, 233, 123, 0.4);
 }
 
 .btn-primary {
@@ -70,7 +76,7 @@ h1 {
     padding: 14px;
     font-size: 16px;
     font-weight: 600;
-    transition: all 0.2s ease;
+    transition: all 0.3s ease;
 }
 
 .btn-primary:hover {
@@ -78,27 +84,13 @@ h1 {
     box-shadow: 0 10px 25px rgba(102, 126, 234, 0.4);
 }
 
-.btn-primary:active {
-    transform: translateY(0);
-}
-
-.text-center p {
-    color: #666;
-    font-size: 14px;
-}
-
-a {
-    color: #667eea;
-    text-decoration: none;
-    font-weight: 600;
-    transition: color 0.3s ease;
-}
-
-a:hover {
-    color: #764ba2;
-    text-decoration: underline;
-}
-
 .alert {
     border-radius: 10px;
+}
+
+.alert-warning {
+    background: #fff3cd;
+    border: none;
+    border-left: 4px solid #ffc107;
+    color: #856404;
 }

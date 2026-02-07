@@ -147,6 +147,7 @@ function create() {
 
     // Handle other player movement
     gameSocket.on("playerMoved", (data) => {
+        console.log("Received player movement:");
         if (data.id === mySocketId || !otherPlayer) return;
         otherPlayer.x = data.x;
         otherPlayer.y = data.y;

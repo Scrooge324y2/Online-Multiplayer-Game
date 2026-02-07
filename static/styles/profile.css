@@ -22,63 +22,50 @@ body {
 }
 
 .card-body {
-    padding: 50px;
+    padding: 40px;
 }
 
 h1 {
     color: #667eea;
-    font-size: 36px;
+    font-size: 32px;
     font-weight: 600;
 }
 
-.game-mode {
-    transition: all 0.3s ease;
-    border: none;
-    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
-}
-
-.game-mode:hover {
-    transform: translateY(-5px);
-    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.15);
-}
-
-.game-mode .card-title {
+h2 {
     color: #333;
-    font-size: 20px;
+    font-size: 24px;
     font-weight: 600;
-    margin-bottom: 15px;
 }
 
-.form-label {
-    color: #333;
-    font-weight: 500;
-    font-size: 14px;
-}
-
-.form-control {
+.list-group-item {
     border: 2px solid #e0e0e0;
-    border-radius: 10px;
-    padding: 12px 15px;
-    font-size: 16px;
-    background: #f8f9fa;
+    border-radius: 10px !important;
+    margin-bottom: 10px;
+    padding: 15px 20px;
     transition: all 0.3s ease;
-}
-
-.form-control:focus {
-    border-color: #667eea;
     background: white;
-    box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
 }
 
-.text-uppercase {
-    text-transform: uppercase;
+.list-group-item:hover {
+    background: #f8f9fa;
+    border-color: #667eea;
+    transform: translateX(5px);
+}
+
+.list-group-item i {
+    margin-right: 10px;
+}
+
+.list-group-item.text-danger:hover {
+    background: #fee;
+    border-color: #dc3545;
 }
 
 .btn-primary {
     background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
     border: none;
     border-radius: 10px;
-    padding: 12px 30px;
+    padding: 14px;
     font-size: 16px;
     font-weight: 600;
     transition: all 0.3s ease;
@@ -86,20 +73,7 @@ h1 {
 
 .btn-primary:hover {
     transform: translateY(-2px);
-    box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
-}
-
-.back-link {
-    color: #667eea;
-    text-decoration: none;
-    font-weight: 600;
-    font-size: 16px;
-    transition: color 0.3s ease;
-}
-
-.back-link:hover {
-    color: #764ba2;
-    text-decoration: underline;
+    box-shadow: 0 8px 25px rgba(102, 126, 234, 0.4);
 }
 
 .alert {

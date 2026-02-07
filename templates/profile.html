@@ -2,21 +2,52 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Profile Page</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles/profile.css') }}">
 </head>
 <body>
-    <!-- Display the username -->
-    <h1>Welcome, {{ username }}!</h1>
+    <div class="container">
+        <div class="card">
+            <div class="card-body">
+                <h1 class="text-center mb-4">Welcome, {{ username }}!</h1>
 
-    <h2>Profile Actions</h2>
-    <ul>
-        <li><a href="/game_history">View Game History</a></li>
-        <li><a href="/change_username">Change Username</a></li>
-        <li><a href="/change_password">Change Password</a></li>
-        <li><a href="/new_recovery_key">New Recovery Key</a></li>
-        <li><a href="/delete_account">Delete Account</a></li>
-    </ul>
+                {% with messages = get_flashed_messages(with_categories=true) %}
+                    {% if messages %}
+                        {% for category, message in messages %}
+                            <div class="alert alert-{{ 'danger' if category == 'error' else 'success' if category == 'success' else category }} alert-dismissible fade show" role="alert">
+                                {{ message }}
+                                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                            </div>
+                        {% endfor %}
+                    {% endif %}
+                {% endwith %}
 
-    <button onclick="window.location.href='/menu'">Main Menu</button>
+                <h2 class="mb-3">Profile Actions</h2>
+                <div class="list-group mb-4">
+                    <a href="/game_history" class="list-group-item list-group-item-action">
+                        <i class="bi bi-clock-history"></i> View Game History
+                    </a>
+                    <a href="/change_username" class="list-group-item list-group-item-action">
+                        <i class="bi bi-person-badge"></i> Change Username
+                    </a>
+                    <a href="/change_password" class="list-group-item list-group-item-action">
+                        <i class="bi bi-key"></i> Change Password
+                    </a>
+                    <a href="/new_recovery_key" class="list-group-item list-group-item-action">
+                        <i class="bi bi-shield-lock"></i> New Recovery Key
+                    </a>
+                    <a href="/delete_account" class="list-group-item list-group-item-action text-danger">
+                        <i class="bi bi-trash"></i> Delete Account
+                    </a>
+                </div>
+
+                <button onclick="window.location.href='/menu'" class="btn btn-primary w-100">Main Menu</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
 </body>
 </html>

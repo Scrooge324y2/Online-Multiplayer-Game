@@ -9,7 +9,7 @@ body {
 }
 
 .container {
-    max-width: 700px;
+    max-width: 900px;
     width: 100%;
 }
 
@@ -29,6 +29,37 @@ h1 {
     color: #667eea;
     font-size: 32px;
     font-weight: 600;
+}
+
+h2 {
+    color: #333;
+    font-size: 24px;
+    font-weight: 600;
+}
+
+.stats-cards .card {
+    border: none;
+    border-radius: 15px;
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+}
+
+.stats-cards .bg-primary {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%) !important;
+}
+
+.stats-cards .bg-info {
+    background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%) !important;
+}
+
+.stats-cards .card-title {
+    font-size: 16px;
+    font-weight: 600;
+    margin-bottom: 10px;
+}
+
+.stats-cards .display-4 {
+    font-size: 48px;
+    font-weight: 700;
 }
 
 .table {
@@ -61,55 +92,28 @@ h1 {
 }
 
 .table tbody tr:hover {
-    background: #e8f4f8;
     transform: scale(1.02);
 }
 
 .table tbody td {
     padding: 15px;
-    color: #333;
     font-size: 16px;
     vertical-align: middle;
     border-color: #e0e0e0;
 }
 
-.table tbody tr.top-1 {
-    background: linear-gradient(135deg, #ffd89b 0%, #19547b 100%);
-    color: white;
+.table-success {
+    background-color: rgba(67, 233, 123, 0.1) !important;
 }
 
-.table tbody tr.top-1 td {
-    color: white;
+.table-danger {
+    background-color: rgba(245, 87, 108, 0.1) !important;
+}
+
+.badge {
+    padding: 6px 12px;
+    font-size: 14px;
     font-weight: 600;
-}
-
-.table tbody tr.top-2 {
-    background: linear-gradient(135deg, #e0e0e0 0%, #757575 100%);
-    color: white;
-}
-
-.table tbody tr.top-2 td {
-    color: white;
-    font-weight: 600;
-}
-
-.table tbody tr.top-3 {
-    background: linear-gradient(135deg, #cd7f32 0%, #8b4513 100%);
-    color: white;
-}
-
-.table tbody tr.top-3 td {
-    color: white;
-    font-weight: 600;
-}
-
-.rank-cell {
-    font-weight: 700;
-    font-size: 18px;
-}
-
-.medal {
-    margin-right: 8px;
 }
 
 .btn-primary {
@@ -125,10 +129,6 @@ h1 {
 .btn-primary:hover {
     transform: translateY(-2px);
     box-shadow: 0 8px 25px rgba(102, 126, 234, 0.4);
-}
-
-.btn-primary:active {
-    transform: translateY(0);
 }
 
 .alert {

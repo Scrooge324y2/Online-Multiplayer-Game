@@ -186,6 +186,9 @@ class GameManager:
             return None
         return self._players[opponent_id]["username"]
 
+    def has_started(self):
+        return self._started
+
 
 
 

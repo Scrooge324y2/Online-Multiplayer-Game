@@ -9,7 +9,7 @@ body {
 }
 
 .container {
-    max-width: 600px;
+    max-width: 500px;
     width: 100%;
 }
 
@@ -22,31 +22,13 @@ body {
 }
 
 .card-body {
-    padding: 50px;
+    padding: 40px;
 }
 
 h1 {
     color: #667eea;
-    font-size: 36px;
+    font-size: 32px;
     font-weight: 600;
-}
-
-.game-mode {
-    transition: all 0.3s ease;
-    border: none;
-    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
-}
-
-.game-mode:hover {
-    transform: translateY(-5px);
-    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.15);
-}
-
-.game-mode .card-title {
-    color: #333;
-    font-size: 20px;
-    font-weight: 600;
-    margin-bottom: 15px;
 }
 
 .form-label {
@@ -70,15 +52,11 @@ h1 {
     box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
 }
 
-.text-uppercase {
-    text-transform: uppercase;
-}
-
 .btn-primary {
     background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
     border: none;
     border-radius: 10px;
-    padding: 12px 30px;
+    padding: 14px;
     font-size: 16px;
     font-weight: 600;
     transition: all 0.3s ease;
@@ -86,22 +64,63 @@ h1 {
 
 .btn-primary:hover {
     transform: translateY(-2px);
-    box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+    box-shadow: 0 10px 25px rgba(102, 126, 234, 0.4);
 }
 
-.back-link {
+.btn-primary:active {
+    transform: translateY(0);
+}
+
+.btn-danger {
+    background: linear-gradient(135deg, #f5576c 0%, #f093fb 100%);
+    border: none;
+    border-radius: 10px;
+    padding: 14px;
+    font-size: 16px;
+    font-weight: 600;
+    transition: all 0.3s ease;
+}
+
+.btn-danger:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 10px 25px rgba(245, 87, 108, 0.4);
+}
+
+.btn-danger:active {
+    transform: translateY(0);
+}
+
+a {
     color: #667eea;
     text-decoration: none;
     font-weight: 600;
-    font-size: 16px;
     transition: color 0.3s ease;
 }
 
-.back-link:hover {
+a:hover {
     color: #764ba2;
     text-decoration: underline;
 }
 
+.text-center p {
+    color: #666;
+    font-size: 14px;
+}
+
 .alert {
     border-radius: 10px;
+}
+
+.alert-info {
+    background: #e8f4f8;
+    border: none;
+    border-left: 4px solid #667eea;
+    color: #555;
+}
+
+.alert-warning {
+    background: #fff3cd;
+    border: none;
+    border-left: 4px solid #ffc107;
+    color: #856404;
 }

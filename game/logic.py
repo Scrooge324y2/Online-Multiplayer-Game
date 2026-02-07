@@ -330,11 +330,11 @@ class ProceduralGenerator:
             if is_valid:
                 biome_config = self.get_biome_config(biome)
                 chunk = self.place_spikes_from_visited(chunk, reachable, biome_config, offset)
-                print(f"Chunk {offset} valid on attempt {attempt + 1}/{max_attempts}")
-                print(f" Obstacle counts: {self.count_obstacles(chunk)}")
+                #print(f"Chunk {offset} valid on attempt {attempt + 1}/{max_attempts}")
+                #print(f" Obstacle counts: {self.count_obstacles(chunk)}")
                 return chunk
 
-            print(f"Chunk {offset} attempt {attempt + 1}/{max_attempts} failed ({len(reachable)} positions)")
+            #print(f"Chunk {offset} attempt {attempt + 1}/{max_attempts} failed ({len(reachable)} positions)")
 
             # Vary generation strategy based on attempt
             if attempt < 3:
@@ -350,7 +350,7 @@ class ProceduralGenerator:
                 self.obstacle_noise = OpenSimplex(self.seed + 2000 + attempt * 317)
                 self.biome_noise = OpenSimplex(self.seed + 1000 + attempt * 113)
 
-        print(f"Chunk {offset} failed after {max_attempts} attempts - using flat chunk")
+        #print(f"Chunk {offset} failed after {max_attempts} attempts - using flat chunk")
         return self.generate_flat_chunk(width, height, offset, self.seed)
 
     def validate_chunk_traversable(self, chunk, width, height):
@@ -470,11 +470,11 @@ class ProceduralGenerator:
         while queue:
             # Safety checks
             if time.time() - start_time > TIMEOUT_SECONDS:
-                print(f" Timeout (reached x={max_x_reached}/{width - 1})")
+                #print(f" Timeout (reached x={max_x_reached}/{width - 1})")
                 return False, visited
 
             if len(visited) > MAX_NODES:
-                print(f"Node limit (reached x={max_x_reached}/{width - 1})")
+                #print(f"Node limit (reached x={max_x_reached}/{width - 1})")
                 return False, visited
 
             x, y = queue.popleft()
@@ -491,5 +491,5 @@ class ProceduralGenerator:
                     queue.append((next_x, next_y))
 
         # Checked all reachable positions without reaching end
-        print(f" Dead end at x={max_x_reached}/{width - 1}")
+        #print(f" Dead end at x={max_x_reached}/{width - 1}")
         return False, visited # returns a set of all reachable positions

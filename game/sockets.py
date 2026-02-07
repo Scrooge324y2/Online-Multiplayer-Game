@@ -53,6 +53,7 @@ def register_socket_events(socketio, games, matchmaking_queue):
         code = data['code']
 
         if code not in games:
+            print("CODE NOT FOUND, CREATING NEW GAME")
             games[code] = GameManager(code)
 
         session['game_code'] = code #stores to update later
@@ -67,6 +68,7 @@ def register_socket_events(socketio, games, matchmaking_queue):
 
     @socketio.on('rejoinRoom')
     def rejoin_room():
+        print("REJOINING ROOM")
         code = session.get("game_code")
         if code not in games:
             print("REDIRECTING TO PLAY")
@@ -81,37 +83,42 @@ def register_socket_events(socketio, games, matchmaking_queue):
 
         # Start the game if safe
         if game.can_start():
+            print("STARTING GAME")
             game.start_game()
             socketio.emit("startGame",{"players": game.get_players_values()},room=code)
 
 
     @socketio.on('requestChunk')
     def on_request_chunk(offset):
-        print(f"chunk requested, offset: {offset}")
+        #print(f"chunk requested, offset: {offset}")
         code = session.get('game_code')
         if not code or code not in games:
             print(f"ERROR: requestChunk - code={code}, exists={code in games if code else False}")
             return
         chunk = games[code].get_chunk(offset=int(offset))
         emit('map', {'map': chunk})
-        print(f"chunk sent, offset: {offset}")
+        #print(f"chunk sent, offset: {offset}")
 
 
 
     @socketio.on('playerMovement')
     def on_player_movement(data):
+        print("PLAYER MOVEMENT")
         sid = request.sid
         code = session.get('game_code')
 
         if not code or code not in games:
+            print(f"ERROR: playerMovement - code={code}, exists={code in games if code else False}")
             return
 
         game = games[code]
         if game.is_over(): #stops the function from running if the game has ended
+            print("PLAYER MOVEMENT IGNORED - GAME OVER")
             return
 
         # Update this player's position in the game
         updatedPos = game.update_position(sid, data.get('x', 0), data.get('y', 0))
+        print("UPDATED POS: ", updatedPos)
 
         if updatedPos:
             socketio.emit('playerMoved', updatedPos, room=code,include_self=False)  # sends position only to other player
@@ -158,13 +165,12 @@ def register_socket_events(socketio, games, matchmaking_queue):
         opponent_id = game.get_opponent_user_id(session['user_id'])
         opponent_username = game.get_opponent_username(session['user_id'])
 
-        if opponent_id:
+        if opponent_id and game.has_started():
             game.end_game(opponent_id, reason='opponent_left')
-
-
             socketio.emit('gameOver',{'winnerUsername': opponent_username, 'reason': 'opponent_left'},room=code)
+            del games[code]
 
-        del games[code]
+
 
 
 
