@@ -24,7 +24,7 @@ class ObstacleType:
 
 
 class ProceduralGenerator:
-    def __init__(self, seed=12):
+    def __init__(self, seed):
         """
         Initialize procedural generator with adjustable difficulty.
         """
