@@ -103,7 +103,6 @@ def register_socket_events(socketio, games, matchmaking_queue):
 
     @socketio.on('playerMovement')
     def on_player_movement(data):
-        print("PLAYER MOVEMENT")
         sid = request.sid
         code = session.get('game_code')
 
@@ -118,11 +117,9 @@ def register_socket_events(socketio, games, matchmaking_queue):
 
         # Update this player's position in the game
         updatedPos = game.update_position(sid, data.get('x', 0), data.get('y', 0))
-        print("UPDATED POS: ", updatedPos)
 
         if updatedPos:
-            socketio.emit('playerMoved', updatedPos, room=code,include_self=False)  # sends position only to other player
-            game.update_distance(sid, data.get('x', 0))
+            socketio.emit('playerMoved', updatedPos.to_dict(), room=code,include_self=False)  # sends position only to other player
             has_winner, winner_user_id, reason = game.check_winner()
 
             if has_winner:

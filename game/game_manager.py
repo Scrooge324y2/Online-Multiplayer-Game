@@ -2,8 +2,7 @@ from game.logic import ProceduralGenerator
 from database import Game, UserGame
 import random
 from datetime import datetime
-import time
-
+from game.player import Player
 class GameManager:
     def __init__(self, code):
         self._max_players = 2
@@ -12,13 +11,11 @@ class GameManager:
         self._room_code = code
         self._random_seed = random.randint(1, 10000)
         self._start_time = 0
-        self._winner = None
-        self._win_distance = 3000
-        self._player_distances = {}
+        self._win_distance = 300
         self._is_over = False
         self._generator = ProceduralGenerator(seed=self._random_seed)
         self._started = False
-        self._ready_sids = set()#
+        self._ready_sids = set()
         self._difficulty_increase_per_chunk = 5
 
 
@@ -28,34 +25,31 @@ class GameManager:
     def add_player(self, user_id, sid, username):
         if user_id in self._players:
             print(f"User {user_id} already in game")
-            self._players[user_id]['sid'] = sid
+            self._players[user_id].sid = sid
             return False
 
         if len(self._players) >= self._max_players:
             return False
-        self._players[user_id] = {'sid': sid,
-                                  'username':username,
-                                  'x': 100,
-                                  'y': 450}
+        self._players[user_id] = Player(user_id, sid, username)
         return True
 
-    def remove_player(self, sid):
+    '''def remove_player(self, sid):
         for user_id, player in list(self._players.items()):
             if player['sid'] == sid:
                 del self._players[user_id]
                 break
 
         if len(self._players) < self._max_players:
-            self._started = False
+            self._started = False'''
 
     def all_players_ready(self):
         return len(self._players) == self._max_players
 
     def update_position(self, sid, x, y):
         for player in self._players.values():
-            if player['sid'] == sid:
-                player['x'] = x
-                player['y'] = y
+            if player.sid == sid:
+                player.update_position(x, y)
+                player.update_distance(x)
                 return player
         return None
 
@@ -73,21 +67,12 @@ class GameManager:
         return chunk
 
 
-    def update_sid(self, user_id, new_sid):#updates a player's socket ID wghen they reconnect
+    def update_sid(self, user_id, new_sid):#updates a player's socket ID when they reconnect
         if user_id in self._players:
-            self._players[user_id]['sid'] = new_sid
+            self._players[user_id].update_sid(new_sid)
             return True
-        else:
-            return False
+        return False
 
-    def update_distance(self, sid, new_x):
-        for user_id, player in self._players.items():
-            if player['sid'] == sid:
-                old_x = player.get('furthest_x', 100)
-                if new_x > old_x:
-                    self._player_distances[user_id] = new_x
-                    player['furthest_x'] = new_x
-                return
 
     def get_distance_between_players(self):
         if len(self._player_distances) < 2:
@@ -112,15 +97,12 @@ class GameManager:
             return None
 
     def check_winner(self):
-        if len(self._player_distances) < 2:
-            return (False, None, None)
+        players = list(self._players.values())
+        p1, p2 = players
 
-        players = list(self._player_distances.items())
-        (u1, d1), (u2, d2) = players
-
-        if abs(d1 - d2) >= self._win_distance:
-            winner_user_id = u1 if d1 > d2 else u2
-            return (True, winner_user_id, "distance")
+        if abs(p1.distance_travelled - p2.distance_travelled) >= self._win_distance:
+            winner = p1 if p1.distance_travelled > p2.distance_travelled else p2
+            return True, winner.user_id, "distance"
 
         return (False, None, None)
 
@@ -147,23 +129,11 @@ class GameManager:
             self._is_over = True
 
 
-
-    def get_max_players(self):
-        return self._max_players
-
     def get_players_values(self):
-        return list(self._players.values())
-
-    def get_players(self):
-        return self._players
+        return [player.to_dict() for player in self._players.values()]
 
     def is_over(self):
         return self._is_over
-
-    def get_sid(self, user_id):
-        if user_id in self._players:
-            return self._players[user_id]['sid']
-        return None
 
     def mark_ready(self, user_id):
         self._ready_sids.add(user_id)
@@ -184,7 +154,7 @@ class GameManager:
         opponent_id = self.get_opponent_user_id(user_id)
         if opponent_id is None:
             return None
-        return self._players[opponent_id]["username"]
+        return self._players[opponent_id].username
 
     def has_started(self):
         return self._started
