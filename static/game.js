@@ -1,15 +1,15 @@
 // --- Constants (no side effects, fine as module-level) ---
-const tileSize = 40;
-const height = 600;
+const TILESIZE = 40;
+const WORLD_HEIGHT = 600;
 const MAX_JUMP_HEIGHT_TILES = 3;
-const JUMP_VELOCITY = Math.sqrt(2 * 400 * (MAX_JUMP_HEIGHT_TILES * tileSize));
+const JUMP_VELOCITY = Math.sqrt(2 * 400 * (MAX_JUMP_HEIGHT_TILES * TILESIZE));
 const SPEED_BOOST = 60;
 const BACKWARDS_SPEED = 30;
 const MAX_SPEED = 260;
 const SPEED_INCREASE_PER_SECOND = 2.5;
 
 function tilesToPixels(tiles) {
-    return tiles * tileSize;
+    return tiles * TILESIZE;
 }
 
 // --- Scene Class ---
@@ -70,9 +70,9 @@ class GameScene extends Phaser.Scene {
             this.chunkOffset++;
             this.chunksLoaded = true;
 
-            const worldWidth = this.chunkOffset * this.chunkWidth * tileSize;
-            this.physics.world.setBounds(0, 0, worldWidth, height);
-            this.cameras.main.setBounds(0, 0, worldWidth, height);
+            const worldWidth = this.chunkOffset * this.chunkWidth * TILESIZE;
+            this.physics.world.setBounds(0, 0, worldWidth, WORLD_HEIGHT);
+            this.cameras.main.setBounds(0, 0, worldWidth, WORLD_HEIGHT);
             this.physics.world.colliders.update();
         });
 
@@ -208,7 +208,7 @@ class GameScene extends Phaser.Scene {
         }
 
         // Request new chunks
-        if (this.player.x > (this.chunkOffset - 2) * this.chunkWidth * tileSize && !this.requestingChunk) {
+        if (this.player.x > (this.chunkOffset - 2) * this.chunkWidth * TILESIZE && !this.requestingChunk) {
             this.requestingChunk = true;
             this.gameSocket.emit('requestChunk', parseInt(this.chunkOffset));
         }
@@ -229,10 +229,10 @@ function drawChunk(scene, chunk, offset) {
         for (let x = 0; x < chunk[y].length; x++) {
             if (chunk[y][x] === 1) {
                 let plat = scene.add.rectangle(
-                    (x + offset * chunk[y].length) * tileSize + tileSize / 2,
-                    y * tileSize + tileSize / 2,
-                    tileSize,
-                    tileSize,
+                    (x + offset * chunk[y].length) * TILESIZE + TILESIZE / 2,
+                    y * TILESIZE + TILESIZE / 2,
+                    TILESIZE,
+                    TILESIZE,
                     0x00ff00
                 );
                 scene.physics.add.existing(plat, true);
@@ -240,8 +240,8 @@ function drawChunk(scene, chunk, offset) {
             } else if (chunk[y][x] === 2) {
                 const spike = createSpike(
                     scene,
-                    (x + offset * chunk[y].length) * tileSize + tileSize / 2,
-                    y * tileSize + tileSize / 2
+                    (x + offset * chunk[y].length) * TILESIZE + TILESIZE / 2,
+                    y * TILESIZE + TILESIZE / 2
                 );
                 scene.spikes.add(spike);
             }
@@ -254,13 +254,13 @@ function drawChunk(scene, chunk, offset) {
 function createSpike(scene, x, y) {
     scene.add.triangle(
         x, y,
-        0, tileSize,
-        tileSize, tileSize,
-        tileSize / 2, 0,
+        0, TILESIZE,
+        TILESIZE, TILESIZE,
+        TILESIZE / 2, 0,
         0xff0000
     );
 
-    const hitbox = scene.add.zone(x, y, tileSize * 0.8, tileSize * 0.6);
+    const hitbox = scene.add.zone(x, y, TILESIZE * 0.8, TILESIZE * 0.6);
     scene.physics.add.existing(hitbox, true);
     hitbox.body.updateFromGameObject();
     hitbox.isSpike = true;
