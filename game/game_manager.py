@@ -74,28 +74,6 @@ class GameManager:
         return False
 
 
-    def get_distance_between_players(self):
-        if len(self._player_distances) < 2:
-            return 0
-
-        player_sids = list(self._player_distances.keys())
-        return abs(self._player_distances[player_sids[0]] - self._player_distances[player_sids[1]])
-
-    def get_leading_player(self):
-        if len(self._player_distances) < 2:
-            return None
-
-        player_sids = list(self._player_distances.keys())
-        p1_distance = self._player_distances[player_sids[0]]
-        p2_distance = self._player_distances[player_sids[1]]
-
-        if p1_distance > p2_distance:
-            return player_sids[0]
-        elif p2_distance > p1_distance:
-            return player_sids[1]
-        else:
-            return None
-
     def check_winner(self):
         players = list(self._players.values())
         p1, p2 = players
@@ -158,6 +136,12 @@ class GameManager:
 
     def has_started(self):
         return self._started
+
+    def get_player_username(self, user_id):
+        if user_id in self._players:
+            return self._players[user_id].username
+        return None
+
 
 
 

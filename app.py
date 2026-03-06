@@ -192,6 +192,11 @@ def matchmaking():
 def game_over():
     if "game_code" not in session:
         return redirect(url_for("play"))
+
+    if session["game_code"] in games:
+        del games[session["game_code"]]
+
+    session.pop("game_code", None)
     return render_template("game_over.html")
 
 @app.route("/profile")
