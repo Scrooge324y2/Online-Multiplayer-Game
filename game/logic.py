@@ -39,7 +39,7 @@ class ProceduralGenerator:
         if self.difficulty!= 2.0:
             self.difficulty += 0.02 * percent_increase
 
-    def generate_flat_chunk(self, width=20, height=15, offset=0, seed=12):
+    def generate_flat_chunk(self, width=20, height=15):
         chunk = [[0 for x in range(width)] for y in range(height)]
         terrain_height = 1
         for x in range(width):
@@ -320,11 +320,11 @@ class ProceduralGenerator:
 
     def generate_valid_chunk(self, width=20, height=15, offset=0, max_attempts=10, attempt=0):
         if offset == 0:
-            return self.generate_flat_chunk(width, height, offset, self.seed)
+            return self.generate_flat_chunk(width, height)
 
         # Base case - max attempts reached, fall back to flat chunk
         if attempt >= max_attempts:
-            return self.generate_flat_chunk(width, height, offset, self.seed)
+            return self.generate_flat_chunk(width, height)
 
         # Vary noise based on attempt number
         if attempt < 3:
@@ -370,14 +370,14 @@ class ProceduralGenerator:
 
             return True
 
-        def simulate_jump(start_x, start_y, direction):
+        def simulate_jump(start_x, start_y, jump_dist, direction):
             path = []
-            for distance in range(1, PLAYER_MAX_JUMP_DISTANCE + 1):
+            for distance in range(1, jump_dist + 1):
                 x = start_x + (distance * direction)
                 if not (0 <= x < width):
                     break
 
-                progress = distance / PLAYER_MAX_JUMP_DISTANCE
+                progress = distance / jump_dist
                 height_offset = int(PLAYER_MAX_JUMP_HEIGHT * (4 * progress * (1 - progress)))
                 y = start_y - height_offset
 
@@ -439,7 +439,7 @@ class ProceduralGenerator:
             for jump_dist in [PLAYER_MAX_JUMP_DISTANCE, PLAYER_MAX_JUMP_DISTANCE - 1, PLAYER_MAX_JUMP_DISTANCE - 2]:
                 if jump_dist < 1:
                     continue
-                jump_landing = simulate_jump(x, y, direction=1)
+                jump_landing = simulate_jump(x, y, jump_dist, direction=1)
                 if jump_landing:
                     land_x, land_y = jump_landing
                     if land_y < height:
