@@ -318,40 +318,34 @@ class ProceduralGenerator:
 
         return chunk
 
-    def generate_valid_chunk(self, width=20, height=15, offset=0, max_attempts=10):
-        """Generate and validate chunk, with fallback to flat chunk"""
+    def generate_valid_chunk(self, width=20, height=15, offset=0, max_attempts=10, attempt=0):
         if offset == 0:
             return self.generate_flat_chunk(width, height, offset, self.seed)
 
-        for attempt in range(max_attempts):
-            chunk, biome = self.generate_chunk(width, height, offset)
-            is_valid, reachable = self.validate_chunk_traversable(chunk, width, height)
+        # Base case - max attempts reached, fall back to flat chunk
+        if attempt >= max_attempts:
+            return self.generate_flat_chunk(width, height, offset, self.seed)
 
-            if is_valid:
-                biome_config = self.get_biome_config(biome)
-                chunk = self.place_spikes_from_visited(chunk, reachable, biome_config, offset)
-                #print(f"Chunk {offset} valid on attempt {attempt + 1}/{max_attempts}")
-                #print(f" Obstacle counts: {self.count_obstacles(chunk)}")
-                return chunk
+        # Vary noise based on attempt number
+        if attempt < 3:
+            self.obstacle_noise = OpenSimplex(self.seed + 2000 + attempt * 137)
+        elif attempt < 6:
+            self.terrain_noise = OpenSimplex(self.seed + attempt * 73)
+            self.obstacle_noise = OpenSimplex(self.seed + 2000 + attempt * 137)
+        else:
+            self.terrain_noise = OpenSimplex(self.seed + attempt * 211)
+            self.obstacle_noise = OpenSimplex(self.seed + 2000 + attempt * 317)
+            self.biome_noise = OpenSimplex(self.seed + 1000 + attempt * 113)
 
-            #print(f"Chunk {offset} attempt {attempt + 1}/{max_attempts} failed ({len(reachable)} positions)")
+        chunk, biome = self.generate_chunk(width, height, offset)
+        is_valid, reachable = self.validate_chunk_traversable(chunk, width, height)
 
-            # Vary generation strategy based on attempt
-            if attempt < 3:
-                # First few attempts: reduce gaps slightly
-                self.obstacle_noise = OpenSimplex(self.seed + 2000 + attempt * 137)
-            elif attempt < 6:
-                # Middle attempts: adjust terrain
-                self.terrain_noise = OpenSimplex(self.seed + attempt * 73)
-                self.obstacle_noise = OpenSimplex(self.seed + 2000 + attempt * 137)
-            else:
-                # Later attempts: more drastic changes
-                self.terrain_noise = OpenSimplex(self.seed + attempt * 211)
-                self.obstacle_noise = OpenSimplex(self.seed + 2000 + attempt * 317)
-                self.biome_noise = OpenSimplex(self.seed + 1000 + attempt * 113)
+        if is_valid:
+            biome_config = self.get_biome_config(biome)
+            return self.place_spikes_from_visited(chunk, reachable, biome_config, offset)
 
-        #print(f"Chunk {offset} failed after {max_attempts} attempts - using flat chunk")
-        return self.generate_flat_chunk(width, height, offset, self.seed)
+        # Recursive case - try again with next attempt
+        return self.generate_valid_chunk(width, height, offset, max_attempts, attempt + 1)
 
     def validate_chunk_traversable(self, chunk, width, height):
         MAX_NODES = 2500
