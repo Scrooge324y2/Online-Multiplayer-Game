@@ -470,7 +470,7 @@ class ProceduralGenerator:
                 else:
                     break
 
-            return abs(height_count1 - height_count2) <= PLAYER_MAX_JUMP_HEIGHT
+            return (height_count2 - height_count1) <= PLAYER_MAX_JUMP_HEIGHT
 
 
         # Find starting position
