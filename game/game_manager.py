@@ -33,15 +33,6 @@ class GameManager:
         self._players[user_id] = Player(user_id, sid, username)
         return True
 
-    '''def remove_player(self, sid):
-        for user_id, player in list(self._players.items()):
-            if player['sid'] == sid:
-                del self._players[user_id]
-                break
-
-        if len(self._players) < self._max_players:
-            self._started = False'''
-
     def all_players_ready(self):
         return len(self._players) == self._max_players
 
@@ -54,13 +45,11 @@ class GameManager:
         return None
 
     def get_chunk(self, offset):
-        print(f"chunk cache keys: {list(self._chunk_cache.keys())}")
         if offset in self._chunk_cache:
             return self._chunk_cache[offset]
 
-        chunk = self._generator.generate_valid_chunk(offset=offset)
+        chunk = self._generator.generate_valid_chunk(offset=offset, prev_chunk=self._chunk_cache.get(offset - 1))
         if chunk is None:
-            print("ERROR: generator returned None, using flat chunk")
             chunk = self._generator.generate_flat_chunk(offset=offset)
         self._chunk_cache[offset] = chunk
         self._generator.increase_difficulty(self._difficulty_increase_per_chunk)

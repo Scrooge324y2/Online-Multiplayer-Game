@@ -41,7 +41,6 @@ def game():
     if not code:
         return redirect(url_for("play"))
 
-    # Always update session with code from URL if provided
     if request.args.get('code'):
         session['game_code'] = code
         session.modified = True

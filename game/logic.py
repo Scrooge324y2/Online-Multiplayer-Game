@@ -123,6 +123,9 @@ class ProceduralGenerator:
         return config
 
     def generate_terrain_heights(self, width, offset, biome_config):
+        """
+            Generate terrain heights using noise, with parameters influenced by biome and difficulty.
+        """
         heights = []
         for x in range(width):
             global_x = x + offset * width
@@ -231,6 +234,9 @@ class ProceduralGenerator:
         return ceiling
 
     def generate_chunk(self, width=20, height=15, offset=0):
+        """
+        Generate a chunk of terrain with the given width and height, influenced by the biome type determined from the offset.
+        """
         chunk = [[0 for _ in range(width)] for _ in range(height)]
         chunk_centre_x = offset * width + width // 2
         biome = self.determine_biome(chunk_centre_x)
@@ -318,7 +324,7 @@ class ProceduralGenerator:
 
         return chunk
 
-    def generate_valid_chunk(self, width=20, height=15, offset=0, max_attempts=10, attempt=0):
+    def generate_valid_chunk(self, width=20, height=15, offset=0, max_attempts=10, attempt=0, prev_chunk=None):
         if offset == 0:
             return self.generate_flat_chunk(width, height)
 
@@ -338,16 +344,16 @@ class ProceduralGenerator:
             self.biome_noise = OpenSimplex(self.seed + 1000 + attempt * 113)
 
         chunk, biome = self.generate_chunk(width, height, offset)
-        is_valid, reachable = self.validate_chunk_traversable(chunk, width, height)
+        is_valid, reachable = self.validate_chunk_traversable(chunk, width, height, prev_chunk)
 
         if is_valid:
             biome_config = self.get_biome_config(biome)
             return self.place_spikes_from_visited(chunk, reachable, biome_config, offset)
 
         # Recursive case - try again with next attempt
-        return self.generate_valid_chunk(width, height, offset, max_attempts, attempt + 1)
+        return self.generate_valid_chunk(width, height, offset, max_attempts, attempt + 1, prev_chunk)
 
-    def validate_chunk_traversable(self, chunk, width, height):
+    def validate_chunk_traversable(self, chunk, width, height, prev_chunk=None):
         MAX_NODES = 2500
         TIMEOUT_SECONDS = 2.0
 
@@ -448,6 +454,25 @@ class ProceduralGenerator:
 
             return neighbours
 
+        def validate_chunk_boundary(prev_chunk, chunk, height):
+            height_count1 = 0
+            height_count2 = 0
+
+            for y in range(height-1, -1, -1):
+                if prev_chunk[y][len(prev_chunk[0]) - 1] == 1:
+                    height_count1 += 1
+                else:
+                    break
+
+            for y in range(height-1, -1, -1):
+                if chunk[y][0] == 1:
+                    height_count2 += 1
+                else:
+                    break
+
+            return abs(height_count1 - height_count2) <= PLAYER_MAX_JUMP_HEIGHT
+
+
         # Find starting position
         start_x = 0
         start_y = get_ground_level(start_x)
@@ -476,6 +501,9 @@ class ProceduralGenerator:
 
             # Success condition
             if x >= width - 1:
+                if prev_chunk is not None:
+                    if not validate_chunk_boundary(prev_chunk, chunk, height):
+                        return False, visited
                 return True, visited
 
             # Explore neighbours
@@ -484,6 +512,4 @@ class ProceduralGenerator:
                     visited.add((next_x, next_y))
                     queue.append((next_x, next_y))
 
-        # Checked all reachable positions without reaching end
-        #print(f" Dead end at x={max_x_reached}/{width - 1}")
         return False, visited # returns a set of all reachable positions
