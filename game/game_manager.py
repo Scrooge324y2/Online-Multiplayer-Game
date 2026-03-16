@@ -49,8 +49,10 @@ class GameManager:
             return self._chunk_cache[offset]
 
         chunk = self._generator.generate_valid_chunk(offset=offset, prev_chunk=self._chunk_cache.get(offset - 1))
+
         if chunk is None:
             chunk = self._generator.generate_flat_chunk(offset=offset)
+
         self._chunk_cache[offset] = chunk
         self._generator.increase_difficulty(self._difficulty_increase_per_chunk)
         return chunk

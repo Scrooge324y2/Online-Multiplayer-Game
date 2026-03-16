@@ -11,11 +11,51 @@ MIN_PLATFORM_HEIGHT_ABOVE = 3
 MAX_PIT_DEPTH = PLAYER_MAX_JUMP_HEIGHT
 
 
-class BiomeType:
-    PLAINS = "plains"
-    HILLS = "hills"
-    MOUNTAINS = "mountains"
-    CAVES = "caves"
+class Biome:
+    def get_config(self, difficulty):
+        raise NotImplementedError
+
+
+class Plains(Biome):
+    def get_config(self, difficulty):
+        return {
+            'height_multiplier': 5,
+            'gap_probability': min(0.5, 0.2 * (0.5 + difficulty * 0.5)),
+            'spike_probability': min(0.8, 0.4 * difficulty),
+            'platform_probability': 0.35 / (0.8 + difficulty * 0.2),
+        }
+
+
+class Hills(Biome):
+    def get_config(self, difficulty):
+        return {
+            'height_multiplier': 7,
+            'gap_probability': min(0.5, 0.25 * (0.5 + difficulty * 0.5)),
+            'spike_probability': min(0.8, 0.5 * difficulty),
+            'platform_probability': 0.4 / (0.8 + difficulty * 0.2),
+        }
+
+
+class Mountains(Biome):
+    def get_config(self, difficulty):
+        return {
+            'height_multiplier': 9,
+            'gap_probability': min(0.5, 0.3 * (0.5 + difficulty * 0.5)),
+            'spike_probability': min(0.8, 0.6 * difficulty),
+            'platform_probability': 0.5 / (0.8 + difficulty * 0.2),
+        }
+
+
+class Caves(Biome):
+    def get_config(self, difficulty):
+        return {
+            'height_multiplier': 6,
+            'has_ceiling': True,
+            'gap_probability': min(0.5, 0.15 * (0.5 + difficulty * 0.5)),
+            'spike_probability': min(0.8, 0.45 * difficulty),
+            'platform_probability': 0.6 / (0.8 + difficulty * 0.2),
+        }
+
 
 
 class ObstacleType:
@@ -58,69 +98,16 @@ class ProceduralGenerator:
     def determine_biome(self, global_x):
         biome_value = self.biome_noise.noise2(x=global_x * 0.01, y=0)
         biome_value = (biome_value + 1) / 2
+
         if biome_value < 0.25:
-            return BiomeType.PLAINS
+            return Plains()
         elif biome_value < 0.5:
-            return BiomeType.HILLS
+            return Hills()
         elif biome_value < 0.75:
-            return BiomeType.MOUNTAINS
+            return Mountains()
         else:
-            return BiomeType.CAVES
+            return Caves()
 
-    def get_biome_config(self, biome):
-        """
-        Return configuration parameters for each biome type.
-        Adjusted based on difficulty setting.
-        """
-        # Base configurations
-        configs = {
-            BiomeType.PLAINS: {
-                'height_multiplier': 5,
-                'height_variation': 0.2,
-                'platform_probability': 0.35,
-                'obstacle_probability': 0.12,
-                'gap_probability': 0.2,
-                'spike_probability': 0.4,
-            },
-            BiomeType.HILLS: {
-                'height_multiplier': 7,
-                'height_variation': 0.25,
-                'platform_probability': 0.4,
-                'obstacle_probability': 0.15,
-                'gap_probability': 0.25,
-                'spike_probability': 0.5,
-            },
-            BiomeType.MOUNTAINS: {
-                'height_multiplier': 9,
-                'height_variation': 0.3,
-                'platform_probability': 0.5,
-                'obstacle_probability': 0.18,
-                'gap_probability': 0.3,
-                'spike_probability': 0.6,
-            },
-            BiomeType.CAVES: {
-                'height_multiplier': 6,
-                'height_variation': 0.2,
-                'platform_probability': 0.6,
-                'obstacle_probability': 0.15,
-                'gap_probability': 0.15,
-                'has_ceiling': True,
-                'spike_probability': 0.45,
-            }
-        }
-
-        config = configs.get(biome, configs[BiomeType.PLAINS])
-
-        # Apply difficulty scaling
-        config['spike_probability'] *= self.difficulty
-        config['gap_probability'] *= (0.5 + self.difficulty * 0.5)  # Gradually increase gaps
-        config['platform_probability'] /= (0.8 + self.difficulty * 0.2)  # Slightly fewer platforms
-
-        # Clamp values to reasonable ranges
-        config['spike_probability'] = min(0.8, config['spike_probability'])
-        config['gap_probability'] = min(0.5, config['gap_probability'])
-
-        return config
 
     def generate_terrain_heights(self, width, offset, biome_config):
         """
@@ -240,7 +227,7 @@ class ProceduralGenerator:
         chunk = [[0 for _ in range(width)] for _ in range(height)]
         chunk_centre_x = offset * width + width // 2
         biome = self.determine_biome(chunk_centre_x)
-        biome_config = self.get_biome_config(biome)
+        biome_config = biome.get_config(self.difficulty)
         heights = self.generate_terrain_heights(width, offset, biome_config)
 
         for x in range(width): # Draw terrain
@@ -274,7 +261,7 @@ class ProceduralGenerator:
                     if platform['x'] + dx < width:
                         chunk[plat_y][platform['x'] + dx] = 1
 
-        if biome == BiomeType.CAVES:
+        if isinstance(biome, Caves):
             ceiling_heights = self.generate_cave_ceiling(width, offset)
             for x in range(width):
                 for y in range(ceiling_heights[x]):
@@ -347,7 +334,7 @@ class ProceduralGenerator:
         is_valid, reachable = self.validate_chunk_traversable(chunk, width, height, prev_chunk)
 
         if is_valid:
-            biome_config = self.get_biome_config(biome)
+            biome_config = biome.get_config(self.difficulty)
             return self.place_spikes_from_visited(chunk, reachable, biome_config, offset)
 
         # Recursive case - try again with next attempt
@@ -489,11 +476,9 @@ class ProceduralGenerator:
         while queue:
             # Safety checks
             if time.time() - start_time > TIMEOUT_SECONDS:
-                #print(f" Timeout (reached x={max_x_reached}/{width - 1})")
                 return False, visited
 
             if len(visited) > MAX_NODES:
-                #print(f"Node limit (reached x={max_x_reached}/{width - 1})")
                 return False, visited
 
             x, y = queue.popleft()

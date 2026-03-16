@@ -15,6 +15,10 @@ def register_socket_events(socketio, games, matchmaking_queue):
 
     @socketio.on('joinMatchmaking')
     def join_matchmaking(data):
+        """
+        When a player joins the matchmaking queue, it adds them to the queue and checks for a match.
+        If a match is found, it creates a new game and both players are redirected to the game page.
+        """
         sid = request.sid
         username = session.get("username")
 
@@ -41,6 +45,9 @@ def register_socket_events(socketio, games, matchmaking_queue):
 
     @socketio.on('leaveMatchmaking')
     def leave_matchmaking():
+        """
+        Removes the player from the matchmaking queue when they choose to leave the page.
+        """
         sid = request.sid
         matchmaking_queue.remove_player(sid)
         print(f'Player {sid} left matchmaking')
@@ -53,7 +60,6 @@ def register_socket_events(socketio, games, matchmaking_queue):
         code = data['code']
 
         if code not in games:
-            print("CODE NOT FOUND, CREATING NEW GAME")
             games[code] = GameManager(code)
 
         session['game_code'] = code #stores to update later
@@ -68,10 +74,12 @@ def register_socket_events(socketio, games, matchmaking_queue):
 
     @socketio.on('rejoinRoom')
     def rejoin_room():
-        print("REJOINING ROOM")
+        """
+        When a player loads the page, their sid changes.
+        This function updates their sid in the game manager and rejoins them to the game room if they are part of a game.
+        """
         code = session.get("game_code")
         if code not in games:
-            print("REDIRECTING TO PLAY")
             emit("redirect_to_play") #redirect player to lobby if they are not part of a game (happens when reloading)
             return
         game = games[code]
@@ -83,26 +91,27 @@ def register_socket_events(socketio, games, matchmaking_queue):
 
         # Start the game if safe
         if game.can_start():
-            print("STARTING GAME")
             game.start_game()
             socketio.emit("startGame",{"players": game.get_players_values()},room=code)
 
 
     @socketio.on('requestChunk')
     def on_request_chunk(offset):
-        #print(f"chunk requested, offset: {offset}")
         code = session.get('game_code')
         if not code or code not in games:
             print(f"ERROR: requestChunk - code={code}, exists={code in games if code else False}")
             return
         chunk = games[code].get_chunk(offset=int(offset))
         emit('map', {'map': chunk})
-        #print(f"chunk sent, offset: {offset}")
 
 
 
     @socketio.on('playerMovement')
     def on_player_movement(data):
+        """
+        Sends position of opponent to the player to synchronise them
+        Checks if the win condition has been met and ends the game if it has.
+        """
         sid = request.sid
         code = session.get('game_code')
 
@@ -112,7 +121,6 @@ def register_socket_events(socketio, games, matchmaking_queue):
 
         game = games[code]
         if game.is_over(): #stops the function from running if the game has ended
-            print("PLAYER MOVEMENT IGNORED - GAME OVER")
             return
 
         # Update this player's position in the game
@@ -133,6 +141,11 @@ def register_socket_events(socketio, games, matchmaking_queue):
 
     @socketio.on('disconnect')
     def on_disconnect():
+        """
+        Handles disconnects from the server
+        If the player is in the matchmaking queue, they are removed from it.
+        If the player is in an active game, the game is ended and the opponent is declared the winner.
+        """
         sid = request.sid
 
 
