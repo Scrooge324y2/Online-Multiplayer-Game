@@ -27,8 +27,13 @@
 
         const params = new URLSearchParams(window.location.search);
         let winner = params.get("winner");
-        console.log(winner);
-        document.getElementById("winner").textContent = `${winner} wins!`;
+        let reason = params.get("reason");
+
+        if (reason === "opponent_left") {
+            document.getElementById("winner").textContent = `${winner} wins! (Opponent disconnected)`;
+        } else {
+            document.getElementById("winner").textContent = `${winner} wins!`;
+        }
 
         function Menu() {
             window.location.href = "/menu";

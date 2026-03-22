@@ -1,3 +1,4 @@
+import dotenv
 from flask import Flask, render_template, request, redirect, url_for, session, flash
 from flask_socketio import SocketIO
 from database import User
@@ -7,10 +8,16 @@ from game.game_manager import GameManager
 from game.matchmaking import MatchmakingQueue
 import socket
 from functools import wraps
+from dotenv import load_dotenv
+import os
+import secrets
+
+
 
 
 app = Flask(__name__)
-app.secret_key = 'sadfsad'
+load_dotenv()
+app.secret_key = os.environ.get('SECRET_KEY', secrets.token_hex(32))
 
 socketio = SocketIO(
     app,

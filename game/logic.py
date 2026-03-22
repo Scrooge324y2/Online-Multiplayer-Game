@@ -66,7 +66,10 @@ class ObstacleType:
 class ProceduralGenerator:
     def __init__(self, seed):
         """
-        Initialize procedural generator with adjustable difficulty.
+        Sets up multiple OpenSimplex noise generators for terrain,
+        biome selection, and obstacle placement. Also initialises
+        difficulty scaling and a seeded random generator to ensure
+        consistent generation across clients.
         """
         self.seed = seed
         self.difficulty = 0.5 #goes from 0.5 o 2.0
@@ -76,6 +79,9 @@ class ProceduralGenerator:
         self.rng = random.Random(seed)
 
     def increase_difficulty(self, percent_increase):
+        """Gradually increases difficulty up to a maximum of 2.0,
+        affecting terrain features such as gap size, spike frequency,
+        and platform placement."""
         if self.difficulty!= 2.0:
             self.difficulty += 0.02 * percent_increase
 
@@ -88,6 +94,7 @@ class ProceduralGenerator:
         return chunk
 
     def is_jump_possible(self, from_y, to_y, dx):
+        """Determines if a jump is possible based on horizontal distance and vertical height difference."""
         dy = to_y - from_y
         if dx > PLAYER_MAX_JUMP_DISTANCE:
             return False
@@ -96,6 +103,9 @@ class ProceduralGenerator:
         return True
 
     def determine_biome(self, global_x):
+        """
+        Determines biome type based on noise value at the given global x-coordinate.
+        """
         biome_value = self.biome_noise.noise2(x=global_x * 0.01, y=0)
         biome_value = (biome_value + 1) / 2
 
@@ -111,7 +121,8 @@ class ProceduralGenerator:
 
     def generate_terrain_heights(self, width, offset, biome_config):
         """
-            Generate terrain heights using noise, with parameters influenced by biome and difficulty.
+        Combines multiple noise layers (base + detail) to produce
+        varied terrain, scaled by biome difficulty.
         """
         heights = []
         for x in range(width):
@@ -159,6 +170,12 @@ class ProceduralGenerator:
         return gaps
 
     def generate_floating_platforms(self, heights, width, height, offset, biome_config):
+        """
+        Uses a two-pass system:
+        1. Identifies gaps or difficult terrain sections.
+        2. Places platforms probabilistically, with increased likelihood
+           over problematic areas to maintain playability.
+        """
         platforms = []
         min_gap_for_platform = 2  # Place platforms over gaps of 2+ tiles
 
@@ -312,6 +329,13 @@ class ProceduralGenerator:
         return chunk
 
     def generate_valid_chunk(self, width=20, height=15, offset=0, max_attempts=10, attempt=0, prev_chunk=None):
+        """
+         Uses recursive retry logic:
+        - Generates a chunk
+        - Validates it using BFS traversal
+        - If invalid, modifies noise seeds and retries
+
+        Falls back to a flat chunk if maximum attempts are exceeded."""
         if offset == 0:
             return self.generate_flat_chunk(width, height)
 
@@ -341,6 +365,18 @@ class ProceduralGenerator:
         return self.generate_valid_chunk(width, height, offset, max_attempts, attempt + 1, prev_chunk)
 
     def validate_chunk_traversable(self, chunk, width, height, prev_chunk=None):
+        """
+         Simulates player movement including walking, falling,
+        and jumping. Uses breadth-first search to explore all
+        reachable states while enforcing constraints such as:
+        - Maximum jump height and distance
+        - Terrain collisions
+        - Boundary continuity with previous chunk
+
+        Includes safety limits (node count and timeout) to
+        prevent excessive computation.
+
+        """
         MAX_NODES = 2500
         TIMEOUT_SECONDS = 2.0
 
