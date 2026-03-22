@@ -1,6 +1,6 @@
 body {
     font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    background: linear-gradient(135deg, #111811 0%, #0b0f0b 100%);
     min-height: 100vh;
     display: flex;
     justify-content: center;
@@ -14,11 +14,11 @@ body {
 }
 
 .card {
-    background: rgba(255, 255, 255, 0.95);
+    background: #131a13;
     border-radius: 20px;
-    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.7);
     backdrop-filter: blur(10px);
-    border: none;
+    border: 1px solid #1c301c;
 }
 
 .card-body {
@@ -26,56 +26,65 @@ body {
 }
 
 h1 {
-    color: #667eea;
+    color: #22c55e;
     font-size: 32px;
     font-weight: 600;
 }
 
 .form-label {
-    color: #333;
+    color: #96b496;
     font-weight: 500;
     font-size: 14px;
 }
 
 .form-control {
-    border: 2px solid #e0e0e0;
+    border: 2px solid #1c301c;
     border-radius: 10px;
     padding: 12px 15px;
     font-size: 16px;
-    background: #f8f9fa;
+    background: #0d130d;
+    color: #ddeedd;
     transition: all 0.3s ease;
 }
 
 .form-control:focus {
-    border-color: #667eea;
-    background: white;
-    box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+    border-color: #22c55e;
+    background: #0f160f;
+    box-shadow: 0 0 0 3px rgba(34, 197, 94, 0.15);
+    color: #ddeedd;
+}
+
+.form-control::placeholder {
+    color: #5a7a5a;
 }
 
 .password-requirements {
-    background: #e8f4f8;
+    background: rgba(34, 197, 94, 0.08);
     border: none;
-    border-left: 4px solid #667eea;
+    border-left: 4px solid #22c55e;
     font-size: 13px;
-    color: #555;
+    color: #96b496;
     line-height: 1.6;
     padding: 12px;
     border-radius: 8px;
 }
 
 .btn-primary {
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    background: linear-gradient(135deg, #22c55e 0%, #16a34a 100%);
     border: none;
     border-radius: 10px;
     padding: 14px;
     font-size: 16px;
     font-weight: 600;
+    color: #fff;
     transition: all 0.2s ease;
 }
 
 .btn-primary:hover {
     transform: translateY(-2px);
-    box-shadow: 0 10px 25px rgba(102, 126, 234, 0.4);
+    box-shadow: 0 10px 25px rgba(34, 197, 94, 0.35);
+    filter: brightness(1.1);
+    color: #fff;
 }
 
 .btn-primary:active {
@@ -83,22 +92,28 @@ h1 {
 }
 
 .text-center p {
-    color: #666;
+    color: #5a7a5a;
     font-size: 14px;
 }
 
 a {
-    color: #667eea;
+    color: #14b8a6;
     text-decoration: none;
     font-weight: 600;
     transition: color 0.3s ease;
 }
 
 a:hover {
-    color: #764ba2;
+    color: #2dd4bf;
     text-decoration: underline;
 }
 
 .alert {
     border-radius: 10px;
+}
+
+.alert-danger {
+    background: rgba(239, 68, 68, 0.1);
+    border: 1px solid rgba(239, 68, 68, 0.35);
+    color: #fca5a5;
 }

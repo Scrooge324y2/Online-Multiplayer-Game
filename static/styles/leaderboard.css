@@ -1,6 +1,6 @@
 body {
     font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    background: linear-gradient(135deg, #111811 0%, #0b0f0b 100%);
     min-height: 100vh;
     display: flex;
     justify-content: center;
@@ -14,11 +14,11 @@ body {
 }
 
 .card {
-    background: rgba(255, 255, 255, 0.95);
+    background: #131a13;
     border-radius: 20px;
-    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.7);
     backdrop-filter: blur(10px);
-    border: none;
+    border: 1px solid #1c301c;
 }
 
 .card-body {
@@ -26,7 +26,7 @@ body {
 }
 
 h1 {
-    color: #667eea;
+    color: #22c55e;
     font-size: 32px;
     font-weight: 600;
 }
@@ -36,24 +36,19 @@ h1 {
 }
 
 .table thead {
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    background: #0d130d;
 }
 
 .table thead th {
-    color: white;
+    color: #5a7a5a;
     padding: 15px;
     font-weight: 600;
-    font-size: 16px;
+    font-size: 13px;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
     border: none;
+    border-bottom: 1px solid #192519;
     vertical-align: middle;
-}
-
-.table thead th:first-child {
-    border-radius: 10px 0 0 0;
-}
-
-.table thead th:last-child {
-    border-radius: 0 10px 0 0;
 }
 
 .table tbody tr {
@@ -61,45 +56,39 @@ h1 {
 }
 
 .table tbody tr:hover {
-    background: #e8f4f8;
-    transform: scale(1.02);
+    filter: brightness(1.15);
 }
 
 .table tbody td {
     padding: 15px;
-    color: #333;
+    color: #96b496;
     font-size: 16px;
     vertical-align: middle;
-    border-color: #e0e0e0;
+    border-color: #192519;
+    background: #0d130d;
 }
 
-.table tbody tr.top-1 {
-    background: linear-gradient(135deg, #ffd89b 0%, #19547b 100%);
-    color: white;
-}
-
+/* Gold — 1st place */
 .table tbody tr.top-1 td {
-    color: white;
+    background: rgba(234, 179, 8, 0.12) !important;
+    border-color: rgba(234, 179, 8, 0.15) !important;
+    color: #fde047 !important;
     font-weight: 600;
 }
 
-.table tbody tr.top-2 {
-    background: linear-gradient(135deg, #e0e0e0 0%, #757575 100%);
-    color: white;
-}
-
+/* Silver — 2nd place */
 .table tbody tr.top-2 td {
-    color: white;
+    background: rgba(148, 163, 184, 0.1) !important;
+    border-color: rgba(148, 163, 184, 0.12) !important;
+    color: #cbd5e1 !important;
     font-weight: 600;
 }
 
-.table tbody tr.top-3 {
-    background: linear-gradient(135deg, #cd7f32 0%, #8b4513 100%);
-    color: white;
-}
-
+/* Bronze — 3rd place */
 .table tbody tr.top-3 td {
-    color: white;
+    background: rgba(180, 83, 9, 0.12) !important;
+    border-color: rgba(180, 83, 9, 0.15) !important;
+    color: #fdba74 !important;
     font-weight: 600;
 }
 
@@ -112,19 +101,23 @@ h1 {
     margin-right: 8px;
 }
 
+/* Grey — back to menu */
 .btn-primary {
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-    border: none;
+    background: linear-gradient(135deg, #2a362a 0%, #1a241a 100%);
+    border: 1px solid #2e3e2e;
     border-radius: 10px;
     padding: 14px;
     font-size: 16px;
     font-weight: 600;
+    color: #96b496;
     transition: all 0.3s ease;
 }
 
 .btn-primary:hover {
     transform: translateY(-2px);
-    box-shadow: 0 8px 25px rgba(102, 126, 234, 0.4);
+    background: linear-gradient(135deg, #344434 0%, #222e22 100%);
+    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.35);
+    color: #ddeedd;
 }
 
 .btn-primary:active {
@@ -133,4 +126,10 @@ h1 {
 
 .alert {
     border-radius: 10px;
+}
+
+.alert-danger {
+    background: rgba(239, 68, 68, 0.1);
+    border: 1px solid rgba(239, 68, 68, 0.35);
+    color: #fca5a5;
 }

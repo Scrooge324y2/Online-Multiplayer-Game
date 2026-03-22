@@ -1,6 +1,6 @@
 body {
     font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    background: linear-gradient(135deg, #111811 0%, #0b0f0b 100%);
     min-height: 100vh;
     display: flex;
     justify-content: center;
@@ -14,11 +14,11 @@ body {
 }
 
 .card {
-    background: rgba(255, 255, 255, 0.95);
+    background: #131a13;
     border-radius: 20px;
-    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.7);
     backdrop-filter: blur(10px);
-    border: none;
+    border: 1px solid #1c301c;
 }
 
 .card-body {
@@ -26,7 +26,7 @@ body {
 }
 
 h1 {
-    color: #333;
+    color: #96b496;
     margin-bottom: 15px;
     font-size: 24px;
     font-weight: 500;
@@ -34,39 +34,35 @@ h1 {
 
 .game-code {
     display: inline-block;
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-    color: white;
+    background: linear-gradient(135deg, #22c55e 0%, #16a34a 100%);
+    color: #fff;
     padding: 15px 40px;
     border-radius: 12px;
     font-size: 36px;
     font-weight: 700;
     letter-spacing: 8px;
     margin: 20px 0;
-    box-shadow: 0 5px 20px rgba(102, 126, 234, 0.4);
+    box-shadow: 0 5px 20px rgba(34, 197, 94, 0.3);
 }
 
 .loading {
-    color: #666;
+    color: #96b496;
     font-size: 18px;
     margin-top: 30px;
     animation: pulse 1.5s ease-in-out infinite;
 }
 
 @keyframes pulse {
-    0%, 100% {
-        opacity: 1;
-    }
-    50% {
-        opacity: 0.5;
-    }
+    0%, 100% { opacity: 1; }
+    50%       { opacity: 0.5; }
 }
 
 .spinner {
     width: 60px;
     height: 60px;
     margin: 30px auto;
-    border: 5px solid #f3f3f3;
-    border-top: 5px solid #667eea;
+    border: 5px solid #1c301c;
+    border-top: 5px solid #22c55e;
     border-radius: 50%;
     animation: spin 1s linear infinite;
 }
@@ -81,24 +77,26 @@ h1 {
     border-radius: 10px;
     margin-top: 30px;
     font-size: 14px;
-    background: #e8f4f8;
+    background: #0d130d;
     border: none;
-    border-left: 4px solid #667eea;
+    border-left: 4px solid #22c55e;
+    color: #96b496;
 }
 
 .btn-secondary {
-    background: linear-gradient(135deg, #6c757d 0%, #495057 100%);
-    border: none;
+    background: linear-gradient(135deg, #2a362a 0%, #1a241a 100%);
+    border: 1px solid #2e3e2e;
     border-radius: 10px;
     padding: 12px 30px;
     font-size: 16px;
     font-weight: 600;
+    color: #96b496;
     transition: all 0.3s ease;
-    color: white;
 }
 
 .btn-secondary:hover {
     transform: translateY(-2px);
-    box-shadow: 0 5px 15px rgba(108, 117, 125, 0.4);
-    color: white;
+    background: linear-gradient(135deg, #344434 0%, #222e22 100%);
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.35);
+    color: #ddeedd;
 }
