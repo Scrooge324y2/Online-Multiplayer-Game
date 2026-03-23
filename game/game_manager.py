@@ -11,7 +11,7 @@ class GameManager:
         self._room_code = code
         self._random_seed = random.randint(1, 10000)
         self._start_time = 0
-        self._win_distance = 300
+        self._win_distance = 30000
         self._is_over = False
         self._generator = ProceduralGenerator(seed=self._random_seed)
         self._started = False

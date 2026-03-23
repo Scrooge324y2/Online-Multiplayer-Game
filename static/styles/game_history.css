@@ -45,7 +45,7 @@ h2 {
 
 /* Teal background — Win Rate */
 .stats-cards .bg-primary {
-    background: linear-gradient(135deg, #14b8a6 0%, #0f766e 100%) !important;
+    background: linear-gradient(135deg, #14b856 0%, #0f766e 100%) !important;
 }
 
 /* White background with teal text — Total Games */
@@ -58,7 +58,7 @@ h2 {
 }
 
 .stats-cards .bg-info .display-4 {
-    color: #14b8a6 !important;
+    color: #0f766e !important;
 }
 
 .stats-cards .card-title {
@@ -130,7 +130,7 @@ h2 {
 .table-danger td {
     background: rgba(239, 68, 68, 0.07) !important;
     border-color: rgba(239, 68, 68, 0.1) !important;
-    color: #96b496 !important;
+    color: #84a694 !important;
 }
 
 /* Green badge — win */

@@ -339,6 +339,24 @@ class ProceduralGenerator:
         if offset == 0:
             return self.generate_flat_chunk(width, height)
 
+        # Save original noise only at the top-level call so retries can
+        # mutate freely, but future chunks are never affected.
+        if attempt == 0:
+            saved_terrain_noise = self.terrain_noise
+            saved_obstacle_noise = self.obstacle_noise
+            saved_biome_noise = self.biome_noise
+        else:
+            saved_terrain_noise = None
+            saved_obstacle_noise = None
+            saved_biome_noise = None
+
+        def restore_noise():
+            if saved_terrain_noise is not None:
+                self.terrain_noise = saved_terrain_noise
+                self.obstacle_noise = saved_obstacle_noise
+                self.biome_noise = saved_biome_noise
+
+
         # Base case - max attempts reached, fall back to flat chunk
         if attempt >= max_attempts:
             return self.generate_flat_chunk(width, height)
@@ -359,6 +377,7 @@ class ProceduralGenerator:
 
         if is_valid:
             biome_config = biome.get_config(self.difficulty)
+            restore_noise()  # restore so future chunks use clean generator
             return self.place_spikes_from_visited(chunk, reachable, biome_config, offset)
 
         # Recursive case - try again with next attempt

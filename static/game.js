@@ -1,3 +1,4 @@
+
 // --- Constants (no side effects, fine as module-level) ---
 const TILESIZE = 40;
 const WORLD_HEIGHT = 600;
