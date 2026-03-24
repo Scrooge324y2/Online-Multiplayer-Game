@@ -28,6 +28,8 @@ class GameScene extends Phaser.Scene {
         this.mySocketId = null;
         this.lastSentX = null;
         this.lastSentY = null;
+        this.myUsername = null;
+        this.opponentUsername = null;
     }
 
     preload() {}
@@ -93,12 +95,14 @@ class GameScene extends Phaser.Scene {
             this.serverReady = true;
             this.requestInitialChunkOnce();
 
-            const myPlayer = data.players.find(p => p.id === this.mySocketId);
-            const other = data.players.find(p => p.id !== this.mySocketId);
+            const myPlayer = data.players.find(p => p.sid === this.mySocketId);
+            const other = data.players.find(p => p.sid !== this.mySocketId);
 
             if (myPlayer) {
                 this.player.x = myPlayer.x;
                 this.player.y = myPlayer.y;
+                this.myUsername = myPlayer.username;
+                console.log(`You are ${this.myUsername}`);
             }
 
             if (other) {
@@ -106,6 +110,8 @@ class GameScene extends Phaser.Scene {
                     this.otherPlayer.destroy();
                 }
                 this.otherPlayer = this.add.rectangle(other.x, other.y, tilesToPixels(1), tilesToPixels(1), 0x0000ff);
+                this.opponentUsername = other.username;
+                console.log(`opponent is ${this.opponentUsername}`);
             }
         });
 
