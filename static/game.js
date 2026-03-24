@@ -1,18 +1,23 @@
-// --- Constants (no side effects, fine as module-level) ---
 const TILESIZE = 40;
 const WORLD_HEIGHT = 600;
-const MAX_JUMP_HEIGHT_TILES = 3;
-const JUMP_VELOCITY = Math.sqrt(2 * 400 * (MAX_JUMP_HEIGHT_TILES * TILESIZE));
+const MAX_JUMP_HEIGHT_TILES = 2;
+const GRAVITY = 800;
+const JUMP_VELOCITY = Math.sqrt(2 * GRAVITY * (MAX_JUMP_HEIGHT_TILES * TILESIZE));
+
+// When the player releases the jump button early, their upward velocity is
+// multiplied by this value to cut the jump short, giving a short hop.
+const JUMP_CUT_MULTIPLIER = 0.5; //upward velocity is reduced to 50% when jump is released
+
 const SPEED_BOOST = 60;
 const BACKWARDS_SPEED = 30;
 const MAX_SPEED = 260;
-const SPEED_INCREASE_PER_SECOND = 2.5;
+const SPEED_INCREASE_PER_SECOND = 1.5;
 
 function tilesToPixels(tiles) {
     return tiles * TILESIZE;
 }
 
-// --- Scene Class ---
+
 class GameScene extends Phaser.Scene {
     constructor() {
         super({ key: 'GameScene' });
@@ -30,6 +35,7 @@ class GameScene extends Phaser.Scene {
         this.myUsername = null;
         this.opponentUsername = null;
         this.jumpBufferTimer = 0;
+        this.canDoubleJump = false;
     }
 
     preload() {}
@@ -180,6 +186,7 @@ class GameScene extends Phaser.Scene {
         const touchingWall = this.player.body.blocked.left || this.player.body.blocked.right;
         const atBottomOfScreen = this.player.body.bottom >= this.cameras.main.worldView.bottom - 5;
         const jumpPressed = Phaser.Input.Keyboard.JustDown(this.cursors.up);
+        const jumpReleased = Phaser.Input.Keyboard.JustUp(this.cursors.up);
 
         let didWallJump = false;
 
@@ -190,6 +197,11 @@ class GameScene extends Phaser.Scene {
             }
         }
 
+        // Restore double jump when landing
+        if (touchingGround || atBottomOfScreen) {
+            this.canDoubleJump = true;
+        }
+
         // Reduce buffer timer each frame
         if (this.jumpBufferTimer > 0) {
             this.jumpBufferTimer -= delta;
@@ -198,6 +210,13 @@ class GameScene extends Phaser.Scene {
         // When jump is pressed, start the buffer window
         if (jumpPressed) {
             this.jumpBufferTimer = 150; // milliseconds
+        }
+
+        // Variable jump height: if the player releases the up key while still
+        // moving upward (negative Y velocity), cut the velocity sharply.
+        // This gives a short hop on tap and a full jump on hold.
+        if (jumpReleased && this.player.body.velocity.y < 0) {
+            this.player.body.setVelocityY(this.player.body.velocity.y * JUMP_CUT_MULTIPLIER);
         }
 
         // WALL JUMP - check jumpPressed directly (instant, no buffer needed)
@@ -211,6 +230,12 @@ class GameScene extends Phaser.Scene {
         // NORMAL JUMP - consumes the buffer
         else if (this.jumpBufferTimer > 0 && (touchingGround || atBottomOfScreen)) {
             this.player.body.setVelocityY(-JUMP_VELOCITY);
+            this.jumpBufferTimer = 0;
+        }
+        // DOUBLE JUMP - only in the air and only once per landing
+        else if (jumpPressed && !touchingGround && !atBottomOfScreen && this.canDoubleJump) {
+            this.player.body.setVelocityY(-JUMP_VELOCITY);
+            this.canDoubleJump = false;
             this.jumpBufferTimer = 0;
         }
 
@@ -244,7 +269,6 @@ class GameScene extends Phaser.Scene {
     }
 }
 
-// --- Helper functions (stateless, receive scene as parameter) ---
 function drawChunk(scene, chunk, offset) {
     for (let y = 0; y < chunk.length; y++) {
         for (let x = 0; x < chunk[y].length; x++) {
@@ -301,7 +325,7 @@ const config = {
     physics: {
         default: 'arcade',
         arcade: {
-            gravity: { y: 400 },
+            gravity: { y: 800 },
             debug: false
         }
     },

@@ -9,6 +9,7 @@ PLAYER_MAX_JUMP_DISTANCE = 4
 MAX_PLATFORM_HEIGHT_ABOVE = 6
 MIN_PLATFORM_HEIGHT_ABOVE = 3
 MAX_PIT_DEPTH = PLAYER_MAX_JUMP_HEIGHT
+MIN_SPIKE_GAP = 3
 
 
 class Biome:
@@ -302,7 +303,7 @@ class ProceduralGenerator:
         positions = sorted(visited, key=lambda p: p[0])
 
         last_spike_x = -999
-        min_gap = max(2, int(4 / self.difficulty))  # base gap = 4 at difficulty 1
+        min_gap = max(MIN_SPIKE_GAP, int(4 / self.difficulty))  # base gap = 4 at difficulty 1
 
         for x, y in positions:
             # Skip edges
