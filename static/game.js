@@ -1,4 +1,3 @@
-
 // --- Constants (no side effects, fine as module-level) ---
 const TILESIZE = 40;
 const WORLD_HEIGHT = 600;
@@ -30,6 +29,7 @@ class GameScene extends Phaser.Scene {
         this.lastSentY = null;
         this.myUsername = null;
         this.opponentUsername = null;
+        this.jumpBufferTimer = 0;
     }
 
     preload() {}
@@ -111,7 +111,7 @@ class GameScene extends Phaser.Scene {
                 }
                 this.otherPlayer = this.add.rectangle(other.x, other.y, tilesToPixels(1), tilesToPixels(1), 0x0000ff);
                 this.opponentUsername = other.username;
-                console.log(`opponent is ${this.opponentUsername}`);
+                console.log(`Opponent is ${this.opponentUsername}`);
             }
         });
 
@@ -190,16 +190,28 @@ class GameScene extends Phaser.Scene {
             }
         }
 
-        // WALL JUMP
+        // Reduce buffer timer each frame
+        if (this.jumpBufferTimer > 0) {
+            this.jumpBufferTimer -= delta;
+        }
+
+        // When jump is pressed, start the buffer window
+        if (jumpPressed) {
+            this.jumpBufferTimer = 150; // milliseconds
+        }
+
+        // WALL JUMP - check jumpPressed directly (instant, no buffer needed)
         if (jumpPressed && touchingWall && !this.player.body.blocked.up) {
             this.player.body.setVelocityY(-JUMP_VELOCITY * 0.85);
             const push = this.player.body.blocked.left ? 180 : -180;
             this.player.body.setVelocityX(push);
+            this.jumpBufferTimer = 0;
             didWallJump = true;
         }
-        // NORMAL JUMP
-        else if (jumpPressed && (touchingGround || atBottomOfScreen)) {
+        // NORMAL JUMP - consumes the buffer
+        else if (this.jumpBufferTimer > 0 && (touchingGround || atBottomOfScreen)) {
             this.player.body.setVelocityY(-JUMP_VELOCITY);
+            this.jumpBufferTimer = 0;
         }
 
         if (!didWallJump) {
