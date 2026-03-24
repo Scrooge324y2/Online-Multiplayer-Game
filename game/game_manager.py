@@ -132,6 +132,21 @@ class GameManager:
             return self._players[user_id].username
         return None
 
+    def get_relative_distance(self, requesting_user_id):
+        players = list(self._players.values())
+
+        if len(players) < 2:
+            return 0
+
+        p1, p2 = players
+
+        if p1.user_id == requesting_user_id:
+            user, opponent = p1, p2
+        else:
+            user, opponent = p2, p1
+
+        return user.distance_travelled - opponent.distance_travelled
+
 
 
 

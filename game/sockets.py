@@ -130,6 +130,12 @@ def register_socket_events(socketio, games, matchmaking_queue):
             socketio.emit('playerMoved', updatedPos.to_dict(), room=code,include_self=False)  # sends position only to other player
             has_winner, winner_user_id, reason = game.check_winner()
 
+            for player in game.get_players_values():
+                relative_distance = game.get_relative_distance(player['user_id'])
+                socketio.emit('distanceUpdate', {'distanceAhead': relative_distance}, room=player['sid'])
+
+
+
             if has_winner:
                 winner_username = game.get_player_username(winner_user_id)
                 game.end_game(session.get("user_id"), reason=None)

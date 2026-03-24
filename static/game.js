@@ -64,7 +64,6 @@ class GameScene extends Phaser.Scene {
 
         // Handle map chunks
         this.gameSocket.on('map', (data) => {
-            console.log("Received chunk:", this.chunkOffset);
             this.requestingChunk = false;
             this.chunkWidth = data.map[0].length;
             drawChunk(this, data.map, this.chunkOffset);
@@ -112,7 +111,6 @@ class GameScene extends Phaser.Scene {
 
         // Handle other player movement
         this.gameSocket.on("playerMoved", (data) => {
-            console.log("Received player movement:");
             if (data.id === this.mySocketId || !this.otherPlayer) return;
             this.otherPlayer.x = data.x;
             this.otherPlayer.y = data.y;
@@ -129,6 +127,10 @@ class GameScene extends Phaser.Scene {
             sessionStorage.removeItem("loadedBefore");
             sessionStorage.setItem("flashMessage", "You were disconnected from the game.");
             window.location.replace("/play");
+        });
+
+        this.gameSocket.on('distanceUpdate', (data) => {
+            this.distanceAhead = data.distanceAhead;
         });
     }
 

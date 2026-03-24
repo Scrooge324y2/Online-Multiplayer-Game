@@ -20,6 +20,7 @@ class Player:
 
     def to_dict(self):
         return {
+            'sid': self.sid,
             'user_id': self.user_id,
             'username': self.username,
             'x': self.x,
