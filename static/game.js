@@ -274,7 +274,7 @@ class GameScene extends Phaser.Scene {
 function drawChunk(scene, chunk, offset) {
     for (let y = 0; y < chunk.length; y++) {
         for (let x = 0; x < chunk[y].length; x++) {
-            if (chunk[y][x] === 1) {
+            if (chunk[y][x] === 1  || chunk[y][x] === 3) {
                 let plat = scene.add.rectangle(
                     (x + offset * chunk[y].length) * TILESIZE + TILESIZE / 2,
                     y * TILESIZE + TILESIZE / 2,
