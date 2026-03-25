@@ -74,6 +74,8 @@ class GameScene extends Phaser.Scene {
         this.gameSocket.on('map', (data) => {
             this.requestingChunk = false;
             this.chunkWidth = data.map[0].length;
+            this.currentBiome = data.biome;
+            console.log(this.currentBiome);
             drawChunk(this, data.map, this.chunkOffset);
             this.chunkOffset++;
             this.chunksLoaded = true;

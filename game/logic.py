@@ -18,7 +18,7 @@ class Biome:
         raise NotImplementedError
 
 
-class Plains(Biome):
+class Plain(Biome):
     def get_config(self, difficulty):
         return {
             'height_multiplier': 5,
@@ -28,7 +28,7 @@ class Plains(Biome):
         }
 
 
-class Hills(Biome):
+class Hill(Biome):
     def get_config(self, difficulty):
         return {
             'height_multiplier': 7,
@@ -38,7 +38,7 @@ class Hills(Biome):
         }
 
 
-class Mountains(Biome):
+class Mountain(Biome):
     def get_config(self, difficulty):
         return {
             'height_multiplier': 9,
@@ -48,7 +48,7 @@ class Mountains(Biome):
         }
 
 
-class Caves(Biome):
+class Cave(Biome):
     def get_config(self, difficulty):
         return {
             'height_multiplier': 6,
@@ -112,13 +112,13 @@ class ProceduralGenerator:
         biome_value = (biome_value + 1) / 2
 
         if biome_value < 0.25:
-            return Plains()
+            return Plain()
         elif biome_value < 0.5:
-            return Hills()
+            return Hill()
         elif biome_value < 0.75:
-            return Mountains()
+            return Mountain()
         else:
-            return Caves()
+            return Cave()
 
 
     def generate_terrain_heights(self, width, offset, biome_config):
@@ -280,7 +280,7 @@ class ProceduralGenerator:
                     if platform['x'] + dx < width:
                         chunk[plat_y][platform['x'] + dx] = 1
 
-        if isinstance(biome, Caves):
+        if isinstance(biome, Cave):
             ceiling_heights = self.generate_cave_ceiling(width, offset)
             for x in range(width):
                 for y in range(ceiling_heights[x]):
@@ -339,7 +339,7 @@ class ProceduralGenerator:
 
         Falls back to a flat chunk if maximum attempts are exceeded."""
         if offset == 0:
-            return self.generate_flat_chunk(width, height)
+            return self.generate_flat_chunk(width, height), "Plain"
 
         # Save original noise only at the top-level call so retries can
         # mutate freely, but future chunks are never affected.
@@ -361,7 +361,7 @@ class ProceduralGenerator:
 
         # Base case - max attempts reached, fall back to flat chunk
         if attempt >= max_attempts:
-            return self.generate_flat_chunk(width, height)
+            return self.generate_flat_chunk(width, height), "Plain"
 
         # Vary noise based on attempt number
         if attempt < 3:
@@ -380,7 +380,7 @@ class ProceduralGenerator:
         if is_valid:
             biome_config = biome.get_config(self.difficulty)
             restore_noise()  # restore so future chunks use clean generator
-            return self.place_spikes_from_visited(chunk, reachable, biome_config, offset)
+            return self.place_spikes_from_visited(chunk, reachable, biome_config, offset), type(biome).__name__ # returns the chunk with spikes placed, and the biome name for client to use in rendering
 
         # Recursive case - try again with next attempt
         return self.generate_valid_chunk(width, height, offset, max_attempts, attempt + 1, prev_chunk)

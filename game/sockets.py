@@ -101,8 +101,8 @@ def register_socket_events(socketio, games, matchmaking_queue):
         if not code or code not in games:
             print(f"ERROR: requestChunk - code={code}, exists={code in games if code else False}")
             return
-        chunk = games[code].get_chunk(offset=int(offset))
-        emit('map', {'map': chunk})
+        chunk, biome_name = games[code].get_chunk(offset=int(offset))
+        emit('map', {'map': chunk, 'biome': biome_name})
 
 
 
