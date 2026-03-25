@@ -4,6 +4,7 @@ from collections import deque
 import time
 
 TILE_SIZE = 1
+BIOME_CHUNK_SIZE = 5
 PLAYER_MAX_JUMP_HEIGHT = 3
 PLAYER_MAX_JUMP_DISTANCE = 4
 MAX_PLATFORM_HEIGHT_ABOVE = 6
@@ -83,8 +84,8 @@ class ProceduralGenerator:
         """Gradually increases difficulty up to a maximum of 2.0,
         affecting terrain features such as gap size, spike frequency,
         and platform placement."""
-        if self.difficulty!= 2.0:
-            self.difficulty += 0.02 * percent_increase
+        if self.difficulty != 2.0:
+            self.difficulty = min(2.0, self.difficulty + 0.02 * percent_increase)
 
     def generate_flat_chunk(self, width=20, height=15):
         chunk = [[0 for x in range(width)] for y in range(height)]
@@ -107,7 +108,7 @@ class ProceduralGenerator:
         """
         Determines biome type based on noise value at the given global x-coordinate.
         """
-        biome_value = self.biome_noise.noise2(x=global_x * 0.01, y=0)
+        biome_value = self.biome_noise.noise2(x=(global_x // (BIOME_CHUNK_SIZE * 20)) * 0.2, y=0) #biomes last 5 chunks, so 100 tiles, so scale down x by 0.01 to get smooth transitions
         biome_value = (biome_value + 1) / 2
 
         if biome_value < 0.25:
