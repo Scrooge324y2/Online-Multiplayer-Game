@@ -62,6 +62,7 @@ class Cave(Biome):
 
 class ObstacleType:
     SPIKE = 2
+    CEILING = 3
 
 
 
@@ -284,7 +285,7 @@ class ProceduralGenerator:
             ceiling_heights = self.generate_cave_ceiling(width, offset)
             for x in range(width):
                 for y in range(ceiling_heights[x]):
-                    chunk[y][x] = 1
+                    chunk[y][x] = ObstacleType.CEILING
 
 
         return chunk, biome
@@ -410,7 +411,7 @@ class ProceduralGenerator:
         def is_solid(x, y):
             if not (0 <= x < width and 0 <= y < height):
                 return False
-            return chunk[y][x] == 1
+            return chunk[y][x] in (1, ObstacleType.CEILING)
 
         def is_valid_position(x, y):
             if not (0 <= x < width and 0 <= y < height):
