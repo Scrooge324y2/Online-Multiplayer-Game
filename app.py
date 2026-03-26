@@ -264,7 +264,7 @@ def delete_account():
         session.pop("user_id", None)
         session.modified = True
         flash("Account deleted successfully.", "success")
-        return redirect(url_for("register"))
+        return redirect(url_for("login"))
 
     return render_template("delete_account.html")
 

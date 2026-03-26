@@ -122,6 +122,7 @@ class ProceduralGenerator:
             return Cave()
 
 
+
     def generate_terrain_heights(self, width, offset, biome_config):
         """
         Combines multiple noise layers (base + detail) to produce
