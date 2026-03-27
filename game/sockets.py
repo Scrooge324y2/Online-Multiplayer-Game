@@ -92,7 +92,7 @@ def register_socket_events(socketio, games, matchmaking_queue):
         # Start the game if safe
         if game.can_start():
             game.start_game()
-            socketio.emit("startGame",{"players": game.get_players_values()},room=code)
+            socketio.emit("startGame",{"players": game.get_players_values(), "winDistance":game.get_win_distance()},room=code)
 
 
     @socketio.on('requestChunk')

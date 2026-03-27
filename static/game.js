@@ -10,8 +10,6 @@ const MAX_SPEED = 260;
 const SPEED_INCREASE_PER_SECOND = 1.5;
 
 
-const WIN_DISTANCE_TILES = 375;
-
 //Per-biome visual definitions — drives sky, tile, spike and fog appearance.
 const BIOME_VISUALS = {
     Plain: {
@@ -209,6 +207,8 @@ class GameScene extends Phaser.Scene {
         //Game start event — receives initial player states and biome, sets up opponent if present
         this.gameSocket.on('startGame', (data) => {
             this.serverReady = true;
+            this.winDistancePx = data.winDistance;
+            this.winDistanceTiles = Math.round(this.winDistancePx / TILESIZE);
             this.requestInitialChunkOnce();
 
             const myPlayer = data.players.find(p => p.sid === this.mySocketId);
@@ -417,8 +417,7 @@ class GameScene extends Phaser.Scene {
 
         //Progress bar (bottom)
         if (this.hudGraphics) {
-            const WIN_PX   = WIN_DISTANCE_TILES * TILESIZE;
-            const ratio    = Math.min(1, Math.abs(this.distanceAhead) / WIN_PX);
+            const ratio    = Math.min(1, Math.abs(this.distanceAhead) / this.winDistancePx);
             const barWidth = Math.round(ratio * 396);
             const isAhead  = this.distanceAhead > 5;
             const isBehind = this.distanceAhead < -5;
@@ -445,7 +444,7 @@ class GameScene extends Phaser.Scene {
             if (this.progressLabel) {
                 const gapM = Math.round(Math.abs(this.distanceAhead) / TILESIZE);
                 this.progressLabel.setText(
-                    `${gapM}m gap  ·  need ${WIN_DISTANCE_TILES}m to win`
+                    `${gapM}m gap  ·  need ${this.winDistanceTiles}m to win`
                 );
             }
         }

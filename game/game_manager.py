@@ -148,7 +148,8 @@ class GameManager:
 
         return user.distance_travelled - opponent.distance_travelled
 
-
+    def get_win_distance(self):
+        return self._win_distance
 
 
 
