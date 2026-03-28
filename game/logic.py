@@ -4,13 +4,13 @@ from collections import deque
 import time
 
 TILE_SIZE = 1
-BIOME_CHUNK_SIZE = 5
+BIOME_CHUNK_LENGTH = 5  # how many chunks each biome lasts
 PLAYER_MAX_JUMP_HEIGHT = 3
 PLAYER_MAX_JUMP_DISTANCE = 4
 MAX_PLATFORM_HEIGHT_ABOVE = 6
 MIN_PLATFORM_HEIGHT_ABOVE = 3
 MAX_PIT_DEPTH = PLAYER_MAX_JUMP_HEIGHT
-MIN_SPIKE_GAP = 3
+MIN_SPIKE_GAP = 4
 
 
 class Biome:
@@ -105,21 +105,22 @@ class ProceduralGenerator:
             return False
         return True
 
-    def determine_biome(self, global_x):
-        """
-        Determines biome type based on noise value at the given global x-coordinate.
-        """
-        biome_value = self.biome_noise.noise2(x=(global_x // (BIOME_CHUNK_SIZE * 20)) * 0.2, y=0) #biomes last 5 chunks, so 100 tiles, so scale down x by 0.01 to get smooth transitions
-        biome_value = (biome_value + 1) / 2
+    def determine_biome(self, global_x, chunk_offset=None):
+        chunk = global_x // (20 * BIOME_CHUNK_LENGTH)
 
-        if biome_value < 0.25:
-            return Plain()
-        elif biome_value < 0.5:
-            return Hill()
-        elif biome_value < 0.75:
-            return Mountain()
-        else:
-            return Cave()
+        # Use chunk index as seed so each chunk always gets the same biome
+        rng = random.Random(self.seed + chunk * 999)
+        biomes = [Plain(), Hill(), Mountain(), Cave()]
+
+        # Keep trying until we get a different biome from the previous chunk
+        biome = rng.choice(biomes)
+        if chunk > 0:
+            prev_rng = random.Random(self.seed + (chunk - 1) * 999)
+            prev_biome = prev_rng.choice(biomes)
+            while type(biome) == type(prev_biome):
+                biome = rng.choice(biomes)
+
+        return biome
 
 
 
@@ -216,6 +217,16 @@ class ProceduralGenerator:
                 plat_width = 2 + int(width_noise * 3)
 
                 platform_y = base_height + height_above
+
+                right_col = x + plat_width
+
+                if right_col < width:
+                    terrain_height_right = heights[right_col]
+
+                    # If terrain is exactly 1 tile below platform → blocking
+                    if platform_y - terrain_height_right == 1:
+                        x += 1
+                        continue
 
                 if platform_y < height - 2 and x + plat_width <= width:
                     platforms.append({

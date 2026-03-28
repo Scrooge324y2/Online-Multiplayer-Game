@@ -7,10 +7,10 @@ const JUMP_CUT_MULTIPLIER = 0.5;
 const SPEED_BOOST = 60;
 const BACKWARDS_SPEED = 30;
 const MAX_SPEED = 260;
-const SPEED_INCREASE_PER_SECOND = 1.5;
+const SPEED_INCREASE_PER_SECOND = 0.5;
 
 
-//Per-biome visual definitions — drives sky, tile, spike and fog appearance.
+//Per-biome visual definitions — drives sky, tile and spike appearance.
 const BIOME_VISUALS = {
     Plain: {
         skyTop:       0x5ba3d9,
@@ -20,8 +20,6 @@ const BIOME_VISUALS = {
         ceilingColor: 0x4a8c35,   // (unused in plains, kept for consistency)
         ceilingCapColor: 0x72c050,
         spikeColor:   0xff5522,
-        fogColor:     null,
-        fogAlpha:     0,
         label:        'Plain',
     },
     Hill: {
@@ -32,8 +30,6 @@ const BIOME_VISUALS = {
         ceilingColor: 0x3d7828,
         ceilingCapColor: 0x5ca040,
         spikeColor:   0xff4400,
-        fogColor:     null,
-        fogAlpha:     0,
         label:        'Hills',
     },
     Mountain: {
@@ -44,8 +40,6 @@ const BIOME_VISUALS = {
         ceilingColor: 0x506070,
         ceilingCapColor: 0x8090a0,
         spikeColor:   0xc8e0ff,
-        fogColor:     0x607888,
-        fogAlpha:     0.13,
         label:        'Mountains',
     },
     Cave: {
@@ -56,8 +50,6 @@ const BIOME_VISUALS = {
         ceilingColor: 0x1a1230,
         ceilingCapColor: 0x2a1e50,
         spikeColor:   0x00ffaa,
-        fogColor:     null,
-        fogAlpha:     0,
         label:        'Cave',
     },
 };
@@ -82,22 +74,22 @@ function tilesToPixels(tiles) { return tiles * TILESIZE; }
 class GameScene extends Phaser.Scene {
     constructor() {
         super({ key: 'GameScene' });
-        this.player       = null;
-        this.otherPlayer  = null;
-        this.platforms    = null;
-        this.spikes       = null;
-        this.cursors      = null;
-        this.chunkOffset  = 0;
-        this.chunkWidth   = 20;
-        this.gameSocket   = null;
-        this.mySocketId   = null;
-        this.lastSentX    = null;
-        this.lastSentY    = null;
-        this.myUsername   = null;
+        this.player = null;
+        this.otherPlayer = null;
+        this.platforms = null;
+        this.spikes = null;
+        this.cursors = null;
+        this.chunkOffset = 0;
+        this.chunkWidth = 20;
+        this.gameSocket = null;
+        this.mySocketId = null;
+        this.lastSentX = null;
+        this.lastSentY = null;
+        this.myUsername = null;
         this.opponentUsername = null;
-        this.jumpBufferTimer  = 0;
-        this.canDoubleJump    = false;
-        this.currentBiome  = 'Plain';
+        this.jumpBufferTimer= 0;
+        this.canDoubleJump = false;
+        this.currentBiome = 'Plain';
         this.distanceAhead = 0;
         this.chunkBiomes = {};
     }
@@ -105,16 +97,14 @@ class GameScene extends Phaser.Scene {
     preload() {}
 
     create() {
-        this.chunksLoaded          = false;
-        this.requestingChunk       = false;
-        this.serverReady           = false;
+        this.chunksLoaded = false;
+        this.requestingChunk = false;
+        this.serverReady = false;
         this.initialChunkRequested = false;
-        this.gameEnded             = false;
+        this.gameEnded = false;
 
 
         this.bgGraphics = this.add.graphics().setScrollFactor(0).setDepth(-10);
-
-        this.fogGraphics = this.add.graphics().setScrollFactor(0).setDepth(45);
 
         this._drawBackground('Plain');
 
@@ -142,11 +132,11 @@ class GameScene extends Phaser.Scene {
 
 
         this.platforms = this.physics.add.staticGroup();
-        this.spikes    = this.physics.add.staticGroup();
+        this.spikes = this.physics.add.staticGroup();
 
         this.gameSocket.on('map', (data) => {
             this.requestingChunk = false;
-            this.chunkWidth   = data.map[0].length;
+            this.chunkWidth = data.map[0].length;
             this.chunkBiomes[this.chunkOffset] = data.biome;
             drawChunk(this, data.map, this.chunkOffset, data.biome);
             this.chunkOffset++;
@@ -161,10 +151,12 @@ class GameScene extends Phaser.Scene {
         this.player = this.add.rectangle(100, 450, tilesToPixels(1), tilesToPixels(1), 0xe04040);
         this.physics.add.existing(this.player);
         this.player.body.setCollideWorldBounds(true);
+        this.player.body.setSize(TILESIZE, TILESIZE * 0.9); // Slightly shorter hitbox to avoid snagging on ceilings
+        this.player.body.setOffset(0, TILESIZE * 0.1); // Center the hitbox vertically on the sprite
         this.playerCollider = this.physics.add.collider(this.player, this.platforms);
         this.player.body.allowSleep = false;
         this.player.baseSpeed = 100;
-        this.player.speed     = this.player.baseSpeed;
+        this.player.speed = this.player.baseSpeed;
         this.physics.add.overlap(this.player, this.spikes, this.onSpikeHit, null, this);
 
 
@@ -192,11 +184,6 @@ class GameScene extends Phaser.Scene {
             strokeThickness: 5,
         }).setScrollFactor(0).setOrigin(0.5, 0).setDepth(101);
 
-        //HUD — biome label, top-right
-        this.biomeLabel = this.add.text(792, 14, '', {
-            fontSize: '13px', fontFamily: 'Arial',
-            color: '#dddddd', stroke: '#000000', strokeThickness: 3,
-        }).setScrollFactor(0).setOrigin(1, 0).setDepth(101);
 
         //HUD — progress bar label
         this.progressLabel = this.add.text(400, 574, '', {
@@ -212,11 +199,11 @@ class GameScene extends Phaser.Scene {
             this.requestInitialChunkOnce();
 
             const myPlayer = data.players.find(p => p.sid === this.mySocketId);
-            const other    = data.players.find(p => p.sid !== this.mySocketId);
+            const other = data.players.find(p => p.sid !== this.mySocketId);
 
             if (myPlayer) {
-                this.player.x  = myPlayer.x;
-                this.player.y  = myPlayer.y;
+                this.player.x = myPlayer.x;
+                this.player.y = myPlayer.y;
                 this.myUsername = myPlayer.username;
                 this.playerLabel.setText(this.myUsername);
             }
@@ -258,7 +245,7 @@ class GameScene extends Phaser.Scene {
         });
     }
 
-    //Redraws the gradient sky and fog overlay whenever the biome changes
+    //Redraws the gradient sky whenever the biome changes
     _drawBackground(biomeName) {
         const v = getBiomeVisuals(biomeName);
 
@@ -267,14 +254,6 @@ class GameScene extends Phaser.Scene {
         this.bgGraphics.fillGradientStyle(v.skyTop, v.skyTop, v.skyBottom, v.skyBottom, 1);
         this.bgGraphics.fillRect(0, 0, 800, 600);
 
-        // Fog bands (mountain only)
-        this.fogGraphics.clear();
-        if (v.fogColor && v.fogAlpha > 0) {
-            this.fogGraphics.fillStyle(v.fogColor, v.fogAlpha);
-            this.fogGraphics.fillRect(0, 160, 800, 100);
-            this.fogGraphics.fillStyle(v.fogColor, v.fogAlpha * 0.6);
-            this.fogGraphics.fillRect(0, 300, 800, 60);
-        }
     }
 
     requestInitialChunkOnce() {
@@ -287,8 +266,8 @@ class GameScene extends Phaser.Scene {
     onSpikeHit(player, spike) {
         if (player.spikeCooldown) return;
         player.spikeCooldown = true;
-        player.speed        *= 0.9;
-        player.slowTimer     = 1.0;
+        player.speed *= 0.5;
+        player.slowTimer = 1.0;
         player.setFillStyle(0xffee00);
 
         this.time.delayedCall(1000, () => {
@@ -310,17 +289,16 @@ class GameScene extends Phaser.Scene {
 
         if (biome && biome !== this.currentBiome) {
             this.currentBiome = biome;
-            this._drawBackground(biome);
         }
 
         this.player.baseSpeed += SPEED_INCREASE_PER_SECOND * (delta / 1000);
-        this.player.baseSpeed  = Math.min(this.player.baseSpeed, MAX_SPEED);
+        this.player.baseSpeed = Math.min(this.player.baseSpeed, MAX_SPEED);
 
         const touchingGround = this.player.body.blocked.down;
-        const touchingWall   = this.player.body.blocked.left || this.player.body.blocked.right;
+        const touchingWall= this.player.body.blocked.left || this.player.body.blocked.right;
         const atBottomOfScreen = this.player.body.bottom >= this.cameras.main.worldView.bottom - 5;
-        const jumpPressed    = Phaser.Input.Keyboard.JustDown(this.cursors.up);
-        const jumpReleased   = Phaser.Input.Keyboard.JustUp(this.cursors.up);
+        const jumpPressed = Phaser.Input.Keyboard.JustDown(this.cursors.up);
+        const jumpReleased = Phaser.Input.Keyboard.JustUp(this.cursors.up);
 
         let didWallJump = false;
 
@@ -347,7 +325,7 @@ class GameScene extends Phaser.Scene {
             this.jumpBufferTimer = 0;
         } else if (jumpPressed && !touchingGround && !atBottomOfScreen && this.canDoubleJump) {
             this.player.body.setVelocityY(-JUMP_VELOCITY);
-            this.canDoubleJump   = false;
+            this.canDoubleJump = false;
             this.jumpBufferTimer = 0;
         }
 
@@ -393,8 +371,8 @@ class GameScene extends Phaser.Scene {
     _updateHUD() {
         //Distance text (top centre)
         if (this.distanceText) {
-            const distM    = Math.round(Math.abs(this.distanceAhead) / TILESIZE);
-            const isAhead  = this.distanceAhead > 5;
+            const distM = Math.round(Math.abs(this.distanceAhead) / TILESIZE);
+            const isAhead = this.distanceAhead > 5;
             const isBehind = this.distanceAhead < -5;
 
             if (isAhead) {
@@ -409,17 +387,11 @@ class GameScene extends Phaser.Scene {
             }
         }
 
-        //Biome label (top-right)
-        if (this.biomeLabel) {
-            const v = getBiomeVisuals(this.currentBiome);
-            this.biomeLabel.setText(v.label || this.currentBiome.toUpperCase());
-        }
-
         //Progress bar (bottom)
         if (this.hudGraphics) {
-            const ratio    = Math.min(1, Math.abs(this.distanceAhead) / this.winDistancePx);
+            const ratio = Math.min(1, Math.abs(this.distanceAhead) / this.winDistancePx);
             const barWidth = Math.round(ratio * 396);
-            const isAhead  = this.distanceAhead > 5;
+            const isAhead= this.distanceAhead > 5;
             const isBehind = this.distanceAhead < -5;
 
             const barColor = isBehind ? lerpColor(0xffee00, 0xff4444, Math.min(1, ratio * 2))
@@ -455,6 +427,12 @@ class GameScene extends Phaser.Scene {
 
 function drawChunk(scene, chunk, offset, biomeName) {
     const v = getBiomeVisuals(biomeName || 'Plain');
+
+    const chunkPxX = offset * chunk[0].length * TILESIZE;
+    const chunkPxW = chunk[0].length * TILESIZE;
+    const bgRect = scene.add.graphics().setDepth(-10);
+    bgRect.fillGradientStyle(v.skyTop, v.skyTop, v.skyBottom, v.skyBottom, 1);
+    bgRect.fillRect(chunkPxX, 0, chunkPxW, WORLD_HEIGHT);
 
     for (let y = 0; y < chunk.length; y++) {
         for (let x = 0; x < chunk[y].length; x++) {
@@ -512,7 +490,7 @@ function createSpike(scene, x, y, color) {
         scene.add.circle(x, y - TILESIZE * 0.35, 11, color, 0.28).setDepth(0);
     }
 
-    const hitbox = scene.add.zone(x, y, TILESIZE * 0.8, TILESIZE * 0.6);
+    const hitbox = scene.add.zone(x, y, TILESIZE * 0.6, TILESIZE * 0.6);
     scene.physics.add.existing(hitbox, true);
     hitbox.body.updateFromGameObject();
     hitbox.isSpike = true;
