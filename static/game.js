@@ -8,6 +8,7 @@ const SPEED_BOOST = 60;
 const BACKWARDS_SPEED = 30;
 const MAX_SPEED = 260;
 const SPEED_INCREASE_PER_SECOND = 0.5;
+const DEBUG_MODE = false;
 
 
 //Per-biome visual definitions — drives sky, tile and spike appearance.
@@ -54,12 +55,10 @@ const BIOME_VISUALS = {
     },
 };
 
-//Fallback for unknown biome names
 function getBiomeVisuals(biomeName) {
     return BIOME_VISUALS[biomeName] || BIOME_VISUALS.Plain;
 }
 
-//Linear colour interpolation helper for progress bar gradient
 function lerpColor(c1, c2, t) {
     const r1 = (c1 >> 16) & 0xff, g1 = (c1 >> 8) & 0xff, b1 = c1 & 0xff;
     const r2 = (c2 >> 16) & 0xff, g2 = (c2 >> 8) & 0xff, b2 = c2 & 0xff;
@@ -85,13 +84,13 @@ class GameScene extends Phaser.Scene {
         this.mySocketId = null;
         this.lastSentX = null;
         this.lastSentY = null;
-        this.myUsername = null;
         this.opponentUsername = null;
         this.jumpBufferTimer= 0;
         this.canDoubleJump = false;
         this.currentBiome = 'Plain';
         this.distanceAhead = 0;
         this.chunkBiomes = {};
+        this.debugMode = DEBUG_MODE;
     }
 
 
@@ -104,10 +103,21 @@ class GameScene extends Phaser.Scene {
 
 
         this.bgGraphics = this.add.graphics().setScrollFactor(0).setDepth(-10);
-
         this._drawBackground('Plain');
-
         this.hudGraphics = this.add.graphics().setScrollFactor(0).setDepth(100);
+
+        // --- Debug overlay setup ---
+        this.debugBg = this.add.graphics().setScrollFactor(0).setDepth(200);
+        this.debugText = this.add.text(8, 8, '', {
+            fontSize: '12px',
+            fontFamily: '"Courier New", monospace',
+            color: '#00ff88',
+            stroke: '#000000',
+            strokeThickness: 3,
+            lineSpacing: 4,
+        }).setScrollFactor(0).setDepth(201).setVisible(this.debugMode);
+
+        // --- End debug overlay setup ---
 
         this.gameSocket = io();
 
@@ -158,7 +168,6 @@ class GameScene extends Phaser.Scene {
         this.player.speed = this.player.baseSpeed;
         this.physics.add.overlap(this.player, this.spikes, this.onSpikeHit, null, this);
 
-        //Opponent username tag
         this.opponentLabel = this.add.text(0, 0, '', {
             fontSize: '11px', fontFamily: 'Arial',
             color: '#aabbff', stroke: '#000000', strokeThickness: 3,
@@ -166,7 +175,6 @@ class GameScene extends Phaser.Scene {
 
         this.cursors = this.input.keyboard.createCursorKeys();
 
-        //HUD — distance text, centred top of screen
         this.distanceText = this.add.text(400, 14, '', {
             fontSize: '21px',
             fontFamily: '"Arial Black", Arial',
@@ -176,14 +184,11 @@ class GameScene extends Phaser.Scene {
             strokeThickness: 5,
         }).setScrollFactor(0).setOrigin(0.5, 0).setDepth(101);
 
-
-        //HUD — progress bar label
         this.progressLabel = this.add.text(400, 574, '', {
             fontSize: '10px', fontFamily: 'Arial',
             color: '#aaaaaa', stroke: '#000000', strokeThickness: 2,
         }).setScrollFactor(0).setOrigin(0.5, 1).setDepth(102);
 
-        //Game start event — receives initial player states and biome, sets up opponent if present
         this.gameSocket.on('startGame', (data) => {
             this.serverReady = true;
             this.winDistancePx = data.winDistance;
@@ -206,11 +211,9 @@ class GameScene extends Phaser.Scene {
                 );
                 this.opponentUsername = other.username;
                 this.opponentLabel.setText(this.opponentUsername);
-
             }
         });
 
-        // Other-player movement updates
         this.gameSocket.on("playerMoved", (data) => {
             if (data.id === this.mySocketId || !this.otherPlayer) return;
             this.otherPlayer.x = data.x;
@@ -230,21 +233,16 @@ class GameScene extends Phaser.Scene {
             window.location.replace("/play");
         });
 
-        //distanceAhead stored for HUD use
         this.gameSocket.on('distanceUpdate', (data) => {
             this.distanceAhead = data.distanceAhead;
         });
     }
 
-    //Redraws the gradient sky whenever the biome changes
     _drawBackground(biomeName) {
         const v = getBiomeVisuals(biomeName);
-
-        // Sky gradient
         this.bgGraphics.clear();
         this.bgGraphics.fillGradientStyle(v.skyTop, v.skyTop, v.skyBottom, v.skyBottom, 1);
         this.bgGraphics.fillRect(0, 0, 800, 600);
-
     }
 
     requestInitialChunkOnce() {
@@ -265,6 +263,42 @@ class GameScene extends Phaser.Scene {
             player.spikeCooldown = false;
             player.setFillStyle(0xe04040);
         });
+    }
+
+    _updateDebugOverlay() {
+        if (!this.debugMode) {
+            this.debugBg.clear();
+            return;
+        }
+
+        const currentChunk = Math.floor(this.player.x / (this.chunkWidth * TILESIZE)) + 1;
+        const biomeLabel = getBiomeVisuals(this.currentBiome).label;
+        const speed = Math.round(this.player.speed);
+        const baseSpeed = Math.round(this.player.baseSpeed);
+
+        const lines = [
+            `Chunks loaded : ${this.chunkOffset}`,
+            `Current chunk : ${currentChunk}`,
+            `Biome         : ${biomeLabel}`,
+            `Speed         : ${speed} px/s`,
+            `Base speed    : ${baseSpeed} px/s`,
+        ];
+
+        const text = lines.join('\n');
+        this.debugText.setText(text);
+
+        // Draw semi-transparent background behind the text
+        const pad = 6;
+        const bounds = this.debugText.getBounds();
+        this.debugBg.clear();
+        this.debugBg.fillStyle(0x000000, 0.55);
+        this.debugBg.fillRoundedRect(
+            bounds.left - pad,
+            bounds.top - pad,
+            bounds.width + pad * 2,
+            bounds.height + pad * 2,
+            6
+        );
     }
 
     update(time, delta) {
@@ -350,13 +384,11 @@ class GameScene extends Phaser.Scene {
             }
         }
 
-        //Redraw HUD every frame
         this._updateHUD();
+        this._updateDebugOverlay();
     }
 
-    //Redraws all HUD elements — distance text, biome label, progress bar
     _updateHUD() {
-        //Distance text (top centre)
         if (this.distanceText) {
             const distM = Math.round(Math.abs(this.distanceAhead) / TILESIZE);
             const isAhead = this.distanceAhead > 5;
@@ -374,7 +406,6 @@ class GameScene extends Phaser.Scene {
             }
         }
 
-        //Progress bar (bottom)
         if (this.hudGraphics) {
             const ratio = Math.min(1, Math.abs(this.distanceAhead) / this.winDistancePx);
             const barWidth = Math.round(ratio * 396);
@@ -394,14 +425,11 @@ class GameScene extends Phaser.Scene {
                 this.hudGraphics.fillStyle(barColor, 0.9);
                 this.hudGraphics.fillRoundedRect(200, 579, barWidth, 12, 3);
 
-                // Shine stripe on top of bar
                 this.hudGraphics.fillStyle(0xffffff, 0.18);
                 this.hudGraphics.fillRect(200, 579, barWidth, 4);
             }
 
-            // Update label
             if (this.progressLabel) {
-                const gapM = Math.round(Math.abs(this.distanceAhead) / TILESIZE);
                 this.progressLabel.setText(
                     `need ${this.winDistanceTiles}m to win`
                 );
@@ -479,7 +507,6 @@ function createSpike(scene, x, y, color) {
 }
 
 
-//Phaser config
 const config = {
     type: Phaser.AUTO,
     width: 800,
