@@ -67,6 +67,16 @@
             window.location.href = "/play";
         });
 
+        socket.on("queueError", (data) => {
+            console.log("Queue error:", data);
+            document.getElementById("status").textContent = data.message;
+
+            // Optional: send them back after 2 seconds
+            setTimeout(() => {
+                window.location.href = "/play";
+            }, 2000);
+        });
+
         function cancelMatchmaking() {
             socket.emit("leaveMatchmaking");
             window.location.href = "/play";

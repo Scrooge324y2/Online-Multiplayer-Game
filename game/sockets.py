@@ -22,8 +22,10 @@ def register_socket_events(socketio, games, matchmaking_queue):
         sid = request.sid
         username = session.get("username")
 
-        matchmaking_queue.add_player(sid, username)
-        print(f"Player {sid} ({username}) joined matchmaking queue.")
+        added = matchmaking_queue.add_player(sid, username)
+        if not added:
+            emit('queueError', {'message': 'You are already in the matchmaking queue'})
+            return
 
         match = matchmaking_queue.find_match()
         if match:
@@ -50,7 +52,6 @@ def register_socket_events(socketio, games, matchmaking_queue):
         """
         sid = request.sid
         matchmaking_queue.remove_player(sid)
-        print(f'Player {sid} left matchmaking')
         emit('queueLeft', {'message': 'Left matchmaking'})
 
 
@@ -138,7 +139,7 @@ def register_socket_events(socketio, games, matchmaking_queue):
 
             if has_winner:
                 winner_username = game.get_player_username(winner_user_id)
-                game.end_game(session.get("user_id"), reason=None)
+                game.end_game(winner_user_id, reason=None)
                 socketio.emit('gameOver', {'winnerUsername': winner_username,'reason': reason}, room=code)
                 session.pop('game_code', None)
                 session.modified = True

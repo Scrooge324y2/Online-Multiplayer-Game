@@ -22,7 +22,7 @@ app.secret_key = os.environ.get('SECRET_KEY', secrets.token_hex(32))
 socketio = SocketIO(
     app,
     cors_allowed_origins="*",
-    manage_session=False,
+    manage_session=True,
     cookie='io',
 )
 
@@ -88,6 +88,10 @@ def register():
 
         if not username or not password:
             flash("Username and password cannot be empty", "error")
+            return redirect(url_for('register'))
+
+        if username == password:
+            flash("Password cannot be the same as username", "error")
             return redirect(url_for('register'))
 
         if not User.validate_username(username):
@@ -172,12 +176,18 @@ def join_game():
         return redirect(url_for("play"))
 
     if code in games:
-        session['game_code'] = code
-        session.modified = True
-        return redirect(url_for("waiting_room", code=code))
-    else:
-        flash("Invalid game code.", "error")
+        if games[code].can_join():
+            session['game_code'] = code
+            session.modified = True
+            if session['user_id'] in games[code].get_players():
+                flash("You are already in this game.", "error")
+                return redirect(url_for("play"))
+            return redirect(url_for("waiting_room", code=code))
+        flash("Cannot join game", "error")
         return redirect(url_for("play"))
+
+    flash("Invalid game code.", "error")
+    return redirect(url_for("play"))
 
 
 @app.route("/waiting_room")
@@ -222,6 +232,10 @@ def forgot_password():
             flash("All fields are required.", "error")
             return redirect(url_for("forgot_password"))
 
+        if username.lower() == new_password.lower():
+            flash("New password cannot be the same as username.", "error")
+            return redirect(url_for("forgot_password"))
+
         user_id = User.get_user_id(username)
         if user_id is None:
             flash("Username not found.", "error")
@@ -235,8 +249,17 @@ def forgot_password():
             flash("Error resetting password. Please try again.", "error")
             return redirect(url_for("forgot_password"))
 
-        flash("Password reset successful.", "success")
-        return redirect(url_for("login"))
+        key = User.create_recovery_key(user_id, new_key=True)
+        session["username"] = username
+        session.modified = True
+
+        if key:
+            session['recovery_key'] = key
+            session.modified = True
+            return redirect(url_for("show_recovery_key"))
+        else:
+            flash("Password reset successful, but failed to generate recovery key.", "warning")
+            return redirect(url_for("login"))
 
     return render_template("forgot_password.html")
 
@@ -280,6 +303,10 @@ def change_password():
 
         if new_password != confirm_password:
             flash("New password and confirmation do not match.", "error")
+            return redirect(url_for("change_password"))
+
+        if username.lower() == new_password.lower():
+            flash("New password cannot be the same as username.", "error")
             return redirect(url_for("change_password"))
 
         if not User.authenticate_user(username, current_password):

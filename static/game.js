@@ -13,44 +13,44 @@ const SPEED_INCREASE_PER_SECOND = 0.5;
 //Per-biome visual definitions — drives sky, tile and spike appearance.
 const BIOME_VISUALS = {
     Plain: {
-        skyTop:       0x5ba3d9,
-        skyBottom:    0xb8e89a,
-        tileColor:    0x4a8c35,
-        tileTopColor: 0x72c050,
-        ceilingColor: 0x4a8c35,   // (unused in plains, kept for consistency)
-        ceilingCapColor: 0x72c050,
-        spikeColor:   0xff5522,
-        label:        'Plain',
+        skyTop:0x5ba3d9,
+        skyBottom:0xb8e89a,
+        tileColor:0x4a8c35,
+        tileTopColor:0x72c050,
+        ceilingColor:0x4a8c35,   // (unused in plains, kept for consistency)
+        ceilingCapColor:0x72c050,
+        spikeColor:0xff5522,
+        label:'Plain',
     },
     Hill: {
-        skyTop:       0x4a8ebf,
-        skyBottom:    0xa0d880,
-        tileColor:    0x3d7828,
-        tileTopColor: 0x5ca040,
-        ceilingColor: 0x3d7828,
-        ceilingCapColor: 0x5ca040,
-        spikeColor:   0xff4400,
-        label:        'Hills',
+        skyTop:0x4a8ebf,
+        skyBottom:0xa0d880,
+        tileColor:0x3d7828,
+        tileTopColor:0x5ca040,
+        ceilingColor:0x3d7828,
+        ceilingCapColor:0x5ca040,
+        spikeColor:0xff4400,
+        label:'Hills',
     },
     Mountain: {
-        skyTop:       0x1e2a3a,
-        skyBottom:    0x506070,
-        tileColor:    0x6a7a80,
-        tileTopColor: 0xeef2f8,
-        ceilingColor: 0x506070,
-        ceilingCapColor: 0x8090a0,
-        spikeColor:   0xc8e0ff,
-        label:        'Mountains',
+        skyTop:0x1e2a3a,
+        skyBottom:0x506070,
+        tileColor:0x6a7a80,
+        tileTopColor:0xeef2f8,
+        ceilingColor:0x506070,
+        ceilingCapColor:0x8090a0,
+        spikeColor:0xc8e0ff,
+        label:'Mountains',
     },
     Cave: {
-        skyTop:       0x06060f,
-        skyBottom:    0x100c1e,
-        tileColor:    0x28205a,
-        tileTopColor: 0x3e2e70,
-        ceilingColor: 0x1a1230,
-        ceilingCapColor: 0x2a1e50,
-        spikeColor:   0x00ffaa,
-        label:        'Cave',
+        skyTop:0x06060f,
+        skyBottom:0x100c1e,
+        tileColor:0x28205a,
+        tileTopColor:0x3e2e70,
+        ceilingColor:0x1a1230,
+        ceilingCapColor:0x2a1e50,
+        spikeColor:0x00ffaa,
+        label:'Cave',
     },
 };
 
@@ -94,7 +94,6 @@ class GameScene extends Phaser.Scene {
         this.chunkBiomes = {};
     }
 
-    preload() {}
 
     create() {
         this.chunksLoaded = false;
@@ -159,13 +158,6 @@ class GameScene extends Phaser.Scene {
         this.player.speed = this.player.baseSpeed;
         this.physics.add.overlap(this.player, this.spikes, this.onSpikeHit, null, this);
 
-
-        //Username tag above the player
-        this.playerLabel = this.add.text(100, 450, '', {
-            fontSize: '11px', fontFamily: 'Arial',
-            color: '#ffffff', stroke: '#000000', strokeThickness: 3,
-        }).setOrigin(0.5, 1).setDepth(3);
-
         //Opponent username tag
         this.opponentLabel = this.add.text(0, 0, '', {
             fontSize: '11px', fontFamily: 'Arial',
@@ -205,7 +197,6 @@ class GameScene extends Phaser.Scene {
                 this.player.x = myPlayer.x;
                 this.player.y = myPlayer.y;
                 this.myUsername = myPlayer.username;
-                this.playerLabel.setText(this.myUsername);
             }
 
             if (other) {
@@ -344,7 +335,7 @@ class GameScene extends Phaser.Scene {
             this.gameSocket.emit('requestChunk', parseInt(this.chunkOffset));
         }
 
-        // Send position
+        // Send position to server
         if (this.gameSocket && this.gameSocket.connected &&
             (this.player.x !== this.lastSentX || this.player.y !== this.lastSentY)) {
             this.gameSocket.emit('playerMovement', { x: this.player.x, y: this.player.y });
@@ -352,10 +343,6 @@ class GameScene extends Phaser.Scene {
             this.lastSentY = this.player.y;
         }
 
-        if (this.playerLabel) {
-            this.playerLabel.x = this.player.x;
-            this.playerLabel.y = this.player.y - TILESIZE / 2 - 4;
-        }
         if (this.otherPlayer) {
             if (this.opponentLabel) {
                 this.opponentLabel.x = this.otherPlayer.x;
@@ -416,7 +403,7 @@ class GameScene extends Phaser.Scene {
             if (this.progressLabel) {
                 const gapM = Math.round(Math.abs(this.distanceAhead) / TILESIZE);
                 this.progressLabel.setText(
-                    `${gapM}m gap  ·  need ${this.winDistanceTiles}m to win`
+                    `need ${this.winDistanceTiles}m to win`
                 );
             }
         }
@@ -478,13 +465,7 @@ function drawChunk(scene, chunk, offset, biomeName) {
 function createSpike(scene, x, y, color) {
     color = color || 0xff5522;
 
-    scene.add.triangle(
-        x, y,
-        0,           TILESIZE,
-        TILESIZE,    TILESIZE,
-        TILESIZE / 2, 0,
-        color
-    ).setDepth(1);
+    scene.add.triangle(x, y, 0, TILESIZE, TILESIZE, TILESIZE, TILESIZE / 2, 0, color).setDepth(1);
 
     if (color === BIOME_VISUALS.Cave.spikeColor) {
         scene.add.circle(x, y - TILESIZE * 0.35, 11, color, 0.28).setDepth(0);

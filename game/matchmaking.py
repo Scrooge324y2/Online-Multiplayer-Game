@@ -10,6 +10,9 @@ class MatchmakingQueue:
 
     def add_player(self, sid, username=None):
         """Add a player to the matchmaking queue"""
+        if username in [p['username'] for p in self._queue]: # Prevents the user from joining the queue multiple times
+            return False
+
         if sid not in [p['sid'] for p in self._queue]:
             player_info = {
                 'sid': sid,
@@ -19,7 +22,6 @@ class MatchmakingQueue:
             self._queue.append(player_info)
             self._player_data[sid] = player_info
             return True
-        return False
 
     def remove_player(self, sid):
         self._queue = [p for p in self._queue if p['sid'] != sid]

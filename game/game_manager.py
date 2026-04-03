@@ -11,7 +11,7 @@ class GameManager:
         self._room_code = code
         self._random_seed = random.randint(1, 10000)
         self._start_time = 0
-        self._win_distance = 100000
+        self._win_distance = 100
         self._is_over = False
         self._generator = ProceduralGenerator(seed=self._random_seed)
         self._started = False
@@ -20,7 +20,8 @@ class GameManager:
 
 
 
-
+    def can_join(self):
+        return len(self._players) < self._max_players
 
     def add_player(self, user_id, sid, username):
         if user_id in self._players:
@@ -151,6 +152,8 @@ class GameManager:
     def get_win_distance(self):
         return self._win_distance
 
+    def get_players(self):
+        return self._players
 
 
 

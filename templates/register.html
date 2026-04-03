@@ -28,7 +28,7 @@
                     <div class="mb-3">
                         <label for="username" class="form-label">Username:</label>
                         <input type="text" class="form-control" id="username" name="username"
-                               pattern="[A-Za-z0-9_]{3,20}" required>
+                               pattern=".{3,20}" required>
                     </div>
 
                     <div class="mb-3">
@@ -39,7 +39,7 @@
                     </div>
 
                     <div class="alert alert-info password-requirements">
-                        Password must be 8-16 characters and include at least one uppercase letter, one lowercase letter, one digit, and one special character (!@#$%^&*_).
+                        Username must be 3-20 characters. Password must be 8-16 characters and include at least one uppercase letter, one lowercase letter, one digit, and one special character (!@#$%^&*_).
                     </div>
 
                     <button type="submit" class="btn btn-primary w-100">Register</button>

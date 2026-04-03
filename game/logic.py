@@ -112,7 +112,7 @@ class ProceduralGenerator:
         rng = random.Random(self.seed + chunk * 999)
         biomes = [Plain(), Hill(), Mountain(), Cave()]
 
-        # Keep trying until we get a different biome from the previous chunk
+        # Keep trying until there is a different biome from the previous chunk
         biome = rng.choice(biomes)
         if chunk > 0:
             prev_rng = random.Random(self.seed + (chunk - 1) * 999)

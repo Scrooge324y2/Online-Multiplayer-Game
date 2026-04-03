@@ -26,10 +26,10 @@
 
                 <form method="POST" action="{{ url_for('change_username') }}">
                     <div class="mb-3">
-                        <label for="new_username" class="form-label">New Username:</label>
+                        <label for="new_username" class="form-label">New Username (3-20 characters):</label>
                         <input type="text" class="form-control" id="new_username" name="new_username"
-                               pattern="[A-Za-z0-9_]{3,20}"
-                               title="3-20 characters, letters, numbers, or underscore"
+                               pattern=".{3,20}"
+                               title="Enter username (3-20 characters)"
                                required>
                     </div>
 
