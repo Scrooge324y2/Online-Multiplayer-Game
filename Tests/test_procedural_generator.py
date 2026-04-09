@@ -7,7 +7,7 @@ sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')
 
 from game.logic import (
     ProceduralGenerator,
-    Plains, Hills, Mountains, Caves,
+    Plain, Hill, Mountain, Cave,
     ObstacleType,
     PLAYER_MAX_JUMP_HEIGHT,
     PLAYER_MAX_JUMP_DISTANCE,
@@ -28,70 +28,70 @@ class TestBiomeConfigs(unittest.TestCase):
         for key in ('height_multiplier', 'gap_probability', 'spike_probability', 'platform_probability'):
             self.assertIn(key, config, f"Missing key '{key}' in config")
 
-    # Plains
-    def test_plains_config_contains_required_keys(self):
-        self._assert_required_keys(Plains().get_config(1.0))
+    # Plain
+    def test_plain_config_contains_required_keys(self):
+        self._assert_required_keys(Plain().get_config(1.0))
 
-    def test_plains_gap_probability_within_bounds(self):
+    def test_plain_gap_probability_within_bounds(self):
         for d in [0.5, 1.0, 2.0]:
-            prob = Plains().get_config(d)['gap_probability']
+            prob = Plain().get_config(d)['gap_probability']
             self.assertGreaterEqual(prob, 0.0)
             self.assertLessEqual(prob, 0.5)
 
-    def test_plains_spike_probability_within_bounds(self):
+    def test_plain_spike_probability_within_bounds(self):
         for d in [0.5, 1.0, 2.0]:
-            prob = Plains().get_config(d)['spike_probability']
+            prob = Plain().get_config(d)['spike_probability']
             self.assertGreaterEqual(prob, 0.0)
             self.assertLessEqual(prob, 0.8)
 
-    def test_plains_gap_probability_increases_with_difficulty(self):
-        p_easy = Plains().get_config(0.5)['gap_probability']
-        p_hard = Plains().get_config(2.0)['gap_probability']
+    def test_plain_gap_probability_increases_with_difficulty(self):
+        p_easy = Plain().get_config(0.5)['gap_probability']
+        p_hard = Plain().get_config(2.0)['gap_probability']
         self.assertGreater(p_hard, p_easy)
 
-    def test_plains_spike_probability_increases_with_difficulty(self):
-        p_easy = Plains().get_config(0.5)['spike_probability']
-        p_hard = Plains().get_config(2.0)['spike_probability']
+    def test_plain_spike_probability_increases_with_difficulty(self):
+        p_easy = Plain().get_config(0.5)['spike_probability']
+        p_hard = Plain().get_config(2.0)['spike_probability']
         self.assertGreater(p_hard, p_easy)
 
-    # Hills
-    def test_hills_config_contains_required_keys(self):
-        self._assert_required_keys(Hills().get_config(1.0))
+    # Hill
+    def test_hill_config_contains_required_keys(self):
+        self._assert_required_keys(Hill().get_config(1.0))
 
-    def test_hills_has_higher_height_multiplier_than_plains(self):
+    def test_hill_has_higher_height_multiplier_than_plain(self):
         self.assertGreater(
-            Hills().get_config(1.0)['height_multiplier'],
-            Plains().get_config(1.0)['height_multiplier']
+            Hill().get_config(1.0)['height_multiplier'],
+            Plain().get_config(1.0)['height_multiplier']
         )
 
-    # Mountains
-    def test_mountains_config_contains_required_keys(self):
-        self._assert_required_keys(Mountains().get_config(1.0))
+    # Mountain
+    def test_mountain_config_contains_required_keys(self):
+        self._assert_required_keys(Mountain().get_config(1.0))
 
-    def test_mountains_has_highest_height_multiplier(self):
+    def test_mountain_has_highest_height_multiplier(self):
         self.assertGreater(
-            Mountains().get_config(1.0)['height_multiplier'],
-            Hills().get_config(1.0)['height_multiplier']
+            Mountain().get_config(1.0)['height_multiplier'],
+            Hill().get_config(1.0)['height_multiplier']
         )
 
-    def test_mountains_gap_probability_within_bounds(self):
+    def test_mountain_gap_probability_within_bounds(self):
         for d in [0.5, 1.0, 2.0]:
-            prob = Mountains().get_config(d)['gap_probability']
+            prob = Mountain().get_config(d)['gap_probability']
             self.assertLessEqual(prob, 0.5)
 
-    # Caves
-    def test_caves_config_contains_required_keys(self):
-        self._assert_required_keys(Caves().get_config(1.0))
+    # Cave
+    def test_cave_config_contains_required_keys(self):
+        self._assert_required_keys(Cave().get_config(1.0))
 
-    def test_caves_has_ceiling_flag(self):
-        config = Caves().get_config(1.0)
+    def test_cave_has_ceiling_flag(self):
+        config = Cave().get_config(1.0)
         self.assertIn('has_ceiling', config)
         self.assertTrue(config['has_ceiling'])
 
-    def test_caves_gap_probability_lower_than_mountains(self):
-        """Caves should be tighter but have fewer gaps than mountains."""
-        cave_gap = Caves().get_config(1.0)['gap_probability']
-        mtn_gap = Mountains().get_config(1.0)['gap_probability']
+    def test_cave_gap_probability_lower_than_mountain(self):
+        """Cave should be tighter but have fewer gaps than mountain."""
+        cave_gap = Cave().get_config(1.0)['gap_probability']
+        mtn_gap = Mountain().get_config(1.0)['gap_probability']
         self.assertLess(cave_gap, mtn_gap)
 
     # Biome raises NotImplementedError for base class
@@ -169,8 +169,8 @@ class TestDifficultyScaling(unittest.TestCase):
         gen_hard = ProceduralGenerator(seed=SEED)
         gen_hard.difficulty = 2.0
 
-        biome_config_easy = Plains().get_config(gen_easy.difficulty)
-        biome_config_hard = Plains().get_config(gen_hard.difficulty)
+        biome_config_easy = Plain().get_config(gen_easy.difficulty)
+        biome_config_hard = Plain().get_config(gen_hard.difficulty)
 
         self.assertGreater(
             biome_config_hard['gap_probability'],
@@ -275,7 +275,7 @@ class TestGenerateTerrainHeights(unittest.TestCase):
 
     def setUp(self):
         self.gen = ProceduralGenerator(seed=SEED)
-        self.biome_config = Plains().get_config(1.0)
+        self.biome_config = Plain().get_config(1.0)
 
     def test_returns_correct_number_of_heights(self):
         heights = self.gen.generate_terrain_heights(CHUNK_WIDTH, 0, self.biome_config)
@@ -292,10 +292,10 @@ class TestGenerateTerrainHeights(unittest.TestCase):
         for h in heights:
             self.assertLessEqual(h, multiplier)
 
-    def test_mountains_produce_higher_terrain_on_average(self):
-        plains_h = self.gen.generate_terrain_heights(CHUNK_WIDTH, 5, Plains().get_config(1.0))
-        mtn_h = self.gen.generate_terrain_heights(CHUNK_WIDTH, 5, Mountains().get_config(1.0))
-        self.assertGreater(sum(mtn_h), sum(plains_h))
+    def test_mountain_produce_higher_terrain_on_average(self):
+        plain_h = self.gen.generate_terrain_heights(CHUNK_WIDTH, 5, Plain().get_config(1.0))
+        mtn_h = self.gen.generate_terrain_heights(CHUNK_WIDTH, 5, Mountain().get_config(1.0))
+        self.assertGreater(sum(mtn_h), sum(plain_h))
 
 
 
@@ -309,7 +309,7 @@ class TestGenerateGaps(unittest.TestCase):
 
     def test_gaps_are_within_chunk_width(self):
         heights = [3] * CHUNK_WIDTH
-        config = Plains().get_config(1.0)
+        config = Plain().get_config(1.0)
         gaps = self.gen.generate_gaps(heights, CHUNK_WIDTH, 2, config)
         for gap_x, gap_width in gaps:
             self.assertGreaterEqual(gap_x, 0)
@@ -318,7 +318,7 @@ class TestGenerateGaps(unittest.TestCase):
     def test_no_adjacent_gaps(self):
         """Gaps must be separated by at least min_spacing tiles."""
         heights = [3] * CHUNK_WIDTH
-        config = Plains().get_config(1.0)
+        config = Plain().get_config(1.0)
         gaps = self.gen.generate_gaps(heights, CHUNK_WIDTH, 3, config)
         for i in range(len(gaps) - 1):
             end_of_first = gaps[i][0] + gaps[i][1]
@@ -327,7 +327,7 @@ class TestGenerateGaps(unittest.TestCase):
 
     def test_gap_widths_do_not_exceed_max_jump_distance(self):
         heights = [3] * CHUNK_WIDTH
-        config = Plains().get_config(1.5)
+        config = Plain().get_config(1.5)
         gaps = self.gen.generate_gaps(heights, CHUNK_WIDTH, 4, config)
         for _, gap_width in gaps:
             self.assertLessEqual(gap_width, PLAYER_MAX_JUMP_DISTANCE)
@@ -335,7 +335,7 @@ class TestGenerateGaps(unittest.TestCase):
     def test_no_gaps_at_offset_0(self):
         """Offset 0 is always a flat starter chunk — gaps tested at offset > 0."""
         heights = [3] * CHUNK_WIDTH
-        config = Plains().get_config(2.0)
+        config = Plain().get_config(2.0)
         # Gaps are valid at offset > 0; this just checks the function doesn't crash
         gaps = self.gen.generate_gaps(heights, CHUNK_WIDTH, 1, config)
         self.assertIsInstance(gaps, list)
@@ -373,24 +373,24 @@ class TestGenerateChunk(unittest.TestCase):
         self.assertGreater(solid, 0)
 
     def test_cave_chunks_have_ceiling(self):
-        """Force a Caves biome by finding a global_x that maps to it."""
+        """Force a Cave biome by finding a global_x that maps to it."""
         gen = ProceduralGenerator(seed=SEED)
         # Sweep until we hit a cave biome
         cave_offset = None
         for offset in range(1, 500):
             global_x = offset * CHUNK_WIDTH + CHUNK_WIDTH // 2
             biome = gen.determine_biome(global_x)
-            if isinstance(biome, Caves):
+            if isinstance(biome, Cave):
                 cave_offset = offset
                 break
 
         if cave_offset is None:
-            self.skipTest("No Caves biome found in first 500 chunks for this seed")
+            self.skipTest("No Cave biome found in first 500 chunks for this seed")
 
         gen2 = ProceduralGenerator(seed=SEED)
         chunk, biome = gen2.generate_chunk(CHUNK_WIDTH, CHUNK_HEIGHT, offset=cave_offset)
         # A cave chunk should have at least one solid tile in its top rows (ceiling)
-        top_solid = any(chunk[y][x] == 1 for y in range(3) for x in range(CHUNK_WIDTH))
+        top_solid = any(chunk[y][x] == 3 for y in range(3) for x in range(CHUNK_WIDTH))
         self.assertTrue(top_solid, "Cave chunk should have a ceiling")
 
 
@@ -546,7 +546,7 @@ class TestPlaceSpikesFromVisited(unittest.TestCase):
 
     def setUp(self):
         self.gen = ProceduralGenerator(seed=SEED)
-        self.biome_config = Plains().get_config(1.0)
+        self.biome_config = Plain().get_config(1.0)
         # Build a flat chunk and a dense visited set
         self.chunk = [[0] * CHUNK_WIDTH for _ in range(CHUNK_HEIGHT)]
         for x in range(CHUNK_WIDTH):
@@ -604,7 +604,7 @@ class TestGenerateFloatingPlatforms(unittest.TestCase):
     def setUp(self):
         self.gen = ProceduralGenerator(seed=SEED)
         self.heights = [3] * CHUNK_WIDTH
-        self.biome_config = Plains().get_config(1.0)
+        self.biome_config = Plain().get_config(1.0)
 
     def test_returns_a_list(self):
         result = self.gen.generate_floating_platforms(

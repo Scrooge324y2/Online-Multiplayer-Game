@@ -198,7 +198,8 @@ class User(Base):
                     'won': won,
                     'duration': f"{minutes}:{seconds:02d}",
                     'date_played': game.StartTime.date(),
-                    'opponent_username': opponent.Username
+                    'opponent_username': opponent.Username,
+                    'opponent_disconnected': bool(game.OpponentDisconnected)
                 })
             return history
         except:
@@ -257,11 +258,12 @@ class Game(Base):
     StartTime = Column(DateTime)
     EndTime = Column(DateTime)
     RandomSeed = Column(Integer)
+    OpponentDisconnected = Column(Boolean, default=False)
 
     @staticmethod
-    def add_game(winnerID, start_time, end_time, random_seed):
+    def add_game(winnerID, start_time, end_time, random_seed, opponent_disconnected=False):
         try:
-            game = Game(WinnerID=winnerID, StartTime=start_time, EndTime=end_time, RandomSeed=random_seed)
+            game = Game(WinnerID=winnerID, StartTime=start_time, EndTime=end_time, RandomSeed=random_seed, OpponentDisconnected=opponent_disconnected)
             session.add(game)
             session.commit()
             return game.GameID

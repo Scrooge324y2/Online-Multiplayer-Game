@@ -11,7 +11,7 @@ class GameManager:
         self._room_code = code
         self._random_seed = random.randint(1, 10000)
         self._start_time = 0
-        self._win_distance = 10000
+        self._win_distance = 8000
         self._is_over = False
         self._generator = ProceduralGenerator(seed=self._random_seed)
         self._started = False
@@ -83,19 +83,18 @@ class GameManager:
         self._start_time = datetime.now()
 
     def end_game(self, winner_user_id, reason):
-        if reason == "opponent_left":
-            self._is_over = True
-            return
-
         if not self._is_over:
+            opponent_disconnected = (reason == "opponent_left")
             game_id = Game.add_game(
                 winnerID=winner_user_id,
                 start_time=self._start_time,
                 end_time=datetime.now(),
                 random_seed=self._random_seed,
+                opponent_disconnected=opponent_disconnected,
             )
-            for user_id in self._players.keys():
-                UserGame.add_user_game(user_id, game_id)
+            if game_id:
+                for user_id in self._players.keys():
+                    UserGame.add_user_game(user_id, game_id)
             self._is_over = True
 
 

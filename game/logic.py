@@ -105,7 +105,7 @@ class ProceduralGenerator:
             return False
         return True
 
-    def determine_biome(self, global_x, chunk_offset=None):
+    def determine_biome(self, global_x):
         chunk = global_x // (20 * BIOME_CHUNK_LENGTH)
 
         # Use chunk index as seed so each chunk always gets the same biome
@@ -221,10 +221,7 @@ class ProceduralGenerator:
                 right_col = x + plat_width
 
                 if right_col < width:
-                    terrain_height_right = heights[right_col]
-
-                    # If terrain is exactly 1 tile below platform → blocking
-                    if platform_y - terrain_height_right == 1:
+                    if heights[right_col] >= platform_y + 1:
                         x += 1
                         continue
 

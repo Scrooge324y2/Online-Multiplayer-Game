@@ -160,12 +160,13 @@ class GameScene extends Phaser.Scene {
         this.player = this.add.rectangle(100, 450, tilesToPixels(1), tilesToPixels(1), 0xe04040);
         this.physics.add.existing(this.player);
         this.player.body.setCollideWorldBounds(true);
-        this.player.body.setSize(TILESIZE, TILESIZE * 0.9); // Slightly shorter hitbox to avoid snagging on ceilings
-        this.player.body.setOffset(0, TILESIZE * 0.1); // Center the hitbox vertically on the sprite
+        this.player.body.setSize(TILESIZE -2, TILESIZE * 0.9); // Slightly shorter hitbox to avoid snagging on ceilings
+        this.player.body.setOffset(1, TILESIZE * 0.1); // Center the hitbox vertically on the sprite
         this.playerCollider = this.physics.add.collider(this.player, this.platforms);
         this.player.body.allowSleep = false;
         this.player.baseSpeed = 100;
         this.player.speed = this.player.baseSpeed;
+        this.player.slowMultiplier = 1.0;
         this.physics.add.overlap(this.player, this.spikes, this.onSpikeHit, null, this);
 
         this.opponentLabel = this.add.text(0, 0, '', {
@@ -255,7 +256,7 @@ class GameScene extends Phaser.Scene {
     onSpikeHit(player, spike) {
         if (player.spikeCooldown) return;
         player.spikeCooldown = true;
-        player.speed *= 0.5;
+        player.slowMultiplier *= 0.5;
         player.slowTimer = 1.0;
         player.setFillStyle(0xffee00);
 
@@ -318,6 +319,7 @@ class GameScene extends Phaser.Scene {
 
         this.player.baseSpeed += SPEED_INCREASE_PER_SECOND * (delta / 1000);
         this.player.baseSpeed = Math.min(this.player.baseSpeed, MAX_SPEED);
+        this.player.speed = this.player.baseSpeed * this.player.slowMultiplier;
 
         const touchingGround = this.player.body.blocked.down;
         const touchingWall= this.player.body.blocked.left || this.player.body.blocked.right;
@@ -329,7 +331,7 @@ class GameScene extends Phaser.Scene {
 
         if (this.player.slowTimer > 0) {
             this.player.slowTimer -= delta / 1000;
-            if (this.player.slowTimer <= 0) this.player.speed = this.player.baseSpeed;
+            if (this.player.slowTimer <= 0) this.player.slowMultiplier = 1;
         }
 
         if (touchingGround || atBottomOfScreen) this.canDoubleJump = true;

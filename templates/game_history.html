@@ -52,6 +52,9 @@
                                     <td>
                                         {% if game.won %}
                                             <span class="badge bg-success">Win</span>
+                                            {% if game.opponent_disconnected %}
+                                                <span class="badge bg-secondary ms-1" title="Opponent disconnected">DC</span>
+                                            {% endif %}
                                         {% else %}
                                             <span class="badge bg-danger">Loss</span>
                                         {% endif %}
