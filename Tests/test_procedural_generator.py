@@ -404,14 +404,14 @@ class TestGenerateValidChunk(unittest.TestCase):
         self.gen = ProceduralGenerator(seed=SEED)
 
     def test_offset_0_returns_flat_chunk(self):
-        chunk = self.gen.generate_valid_chunk(offset=0)
+        chunk, _ = self.gen.generate_valid_chunk(offset=0)
         # Flat chunk: only bottom row is solid
         self.assertEqual(chunk[CHUNK_HEIGHT - 1][0], 1)
         for y in range(CHUNK_HEIGHT - 1):
             self.assertEqual(chunk[y][0], 0)
 
     def test_valid_chunk_has_correct_dimensions(self):
-        chunk = self.gen.generate_valid_chunk(offset=1)
+        chunk, _ = self.gen.generate_valid_chunk(offset=1)
         self.assertEqual(len(chunk), CHUNK_HEIGHT)
         self.assertEqual(len(chunk[0]), CHUNK_WIDTH)
 
@@ -420,7 +420,7 @@ class TestGenerateValidChunk(unittest.TestCase):
         self.assertIsNotNone(chunk)
 
     def test_valid_chunk_all_tiles_are_valid_values(self):
-        chunk = self.gen.generate_valid_chunk(offset=2)
+        chunk, _ = self.gen.generate_valid_chunk(offset=2)
         valid = {0, 1, 2}
         for row in chunk:
             for tile in row:
@@ -430,14 +430,14 @@ class TestGenerateValidChunk(unittest.TestCase):
         """If max_attempts=1 and first chunk is invalid, should fall back gracefully."""
         gen = ProceduralGenerator(seed=SEED)
         # max_attempts=1 means at attempt=1 it will fall back to flat
-        chunk = gen.generate_valid_chunk(offset=5, max_attempts=1)
+        chunk, biome = gen.generate_valid_chunk(offset=5, max_attempts=1)
         self.assertIsNotNone(chunk)
         self.assertEqual(len(chunk), CHUNK_HEIGHT)
 
     def test_consecutive_chunks_with_prev_chunk(self):
         gen = ProceduralGenerator(seed=SEED)
-        chunk0 = gen.generate_valid_chunk(offset=0)
-        chunk1 = gen.generate_valid_chunk(offset=1, prev_chunk=chunk0)
+        chunk0, _ = gen.generate_valid_chunk(offset=0)
+        chunk1, _ = gen.generate_valid_chunk(offset=1, prev_chunk=chunk0)
         self.assertIsNotNone(chunk1)
 
     def test_generation_time_is_reasonable(self):
@@ -693,7 +693,7 @@ class TestFullPipeline(unittest.TestCase):
         gen = ProceduralGenerator(seed=SEED)
         prev = None
         for offset in range(0, 6):
-            chunk = gen.generate_valid_chunk(offset=offset, prev_chunk=prev)
+            chunk, biome = gen.generate_valid_chunk(offset=offset, prev_chunk=prev)
             self.assertIsNotNone(chunk)
             if offset > 0:
                 is_valid, _ = gen.validate_chunk_traversable(chunk, CHUNK_WIDTH, CHUNK_HEIGHT, prev_chunk=prev)
@@ -713,7 +713,7 @@ class TestFullPipeline(unittest.TestCase):
     def test_chunks_at_high_difficulty_still_valid(self):
         gen = ProceduralGenerator(seed=SEED)
         gen.difficulty = 1.9
-        chunk = gen.generate_valid_chunk(offset=5)
+        chunk, biome = gen.generate_valid_chunk(offset=5)
         self.assertIsNotNone(chunk)
         is_valid, _ = gen.validate_chunk_traversable(chunk, CHUNK_WIDTH, CHUNK_HEIGHT)
         self.assertTrue(is_valid)
