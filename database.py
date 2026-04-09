@@ -7,6 +7,8 @@ import secrets
 engine = create_engine('sqlite:///database.db', echo=True)
 Base = declarative_base()
 Session = sessionmaker(bind=engine)
+import logging
+from sqlalchemy.exc import SQLAlchemyError
 session = Session()
 
 
@@ -31,33 +33,45 @@ class User(Base):
             if user.RecoveryKeyHash is not None and not new_key:
                 return None
 
-            recovery_key = secrets.token_urlsafe(16)  # generates a secure random recovery key
-            hashed_key = bcrypt.hashpw(recovery_key.encode('utf-8'), bcrypt.gensalt()).decode('utf-8')  # hashes the recovery key
+            recovery_key = secrets.token_urlsafe(16)
+            hashed_key = bcrypt.hashpw(
+                recovery_key.encode('utf-8'),
+                bcrypt.gensalt()
+            ).decode('utf-8')
+
             user.RecoveryKeyHash = hashed_key
             session.commit()
+
             return recovery_key
 
-        except:
+        except SQLAlchemyError as e:
             session.rollback()
+            logging.error(f"[DB ERROR] create_recovery_key: {e}")
             return None
 
-
-
-
-                        
+        except Exception as e:
+            logging.error(f"[UNKNOWN ERROR] create_recovery_key: {e}")
+            return None
 
     @staticmethod
     def add_user(username, password):
         try:
-            passwordBytes = password.encode('utf-8') # converting password to array of bytes
+            passwordBytes = password.encode('utf-8')
             salt = bcrypt.gensalt()
-            hashedPw = bcrypt.hashpw(passwordBytes, salt).decode('utf-8') # hashing the password
+            hashedPw = bcrypt.hashpw(passwordBytes, salt).decode('utf-8')
+
             user = User(Username=username, BcryptHash=hashedPw, IsActive=True)
             session.add(user)
             session.commit()
             return True
-        except:
+
+        except SQLAlchemyError as e:
             session.rollback()
+            logging.error(f"[DB ERROR] add_user failed: {e}")
+            return False
+
+        except Exception as e:
+            logging.error(f"[UNKNOWN ERROR] add_user: {e}")
             return False
 
     @staticmethod
@@ -127,13 +141,23 @@ class User(Base):
     @staticmethod
     def authenticate_user(usernameEntered, passwordEntered):
         try:
-            bytesPw = passwordEntered.encode('utf-8') # converting password to array of bytes
-            result = session.execute(select(User.BcryptHash).where(User.Username == usernameEntered)).first()
+            bytesPw = passwordEntered.encode('utf-8')
+            result = session.execute(
+                select(User.BcryptHash).where(User.Username == usernameEntered)
+            ).first()
+
             if result:
                 stored_hash = result[0].encode('utf-8')
                 return bcrypt.checkpw(bytesPw, stored_hash)
+
             return False
-        except:
+
+        except SQLAlchemyError as e:
+            logging.error(f"[DB ERROR] authenticate_user failed: {e}")
+            return False
+
+        except Exception as e:
+            logging.error(f"[UNKNOWN ERROR] authenticate_user: {e}")
             return False
 
     @staticmethod
@@ -159,9 +183,14 @@ class User(Base):
                 .order_by(desc("wins"))
                 .limit(10)
             )
-            results = session.execute(stmt).all()
-            return results
-        except:
+            return session.execute(stmt).all()
+
+        except SQLAlchemyError as e:
+            logging.error(f"[DB ERROR] get_top_10_by_wins: {e}")
+            return []
+
+        except Exception as e:
+            logging.error(f"[UNKNOWN ERROR] get_top_10_by_wins: {e}")
             return []
 
     @staticmethod

@@ -1,4 +1,4 @@
-const TILESIZE = 40;
+const TILESIZE = 40; // Size of a single tile in pixels
 const WORLD_HEIGHT = 600;
 const MAX_JUMP_HEIGHT_TILES = 2;
 const GRAVITY = 800;

@@ -3,7 +3,7 @@ import random
 from collections import deque
 import time
 
-TILE_SIZE = 1
+TILE_SIZE = 1 # Number of array units per tile, can be used for scaling if needed
 BIOME_CHUNK_LENGTH = 5  # how many chunks each biome lasts
 PLAYER_MAX_JUMP_HEIGHT = 3
 PLAYER_MAX_JUMP_DISTANCE = 4

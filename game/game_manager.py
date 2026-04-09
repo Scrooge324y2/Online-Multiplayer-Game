@@ -3,6 +3,9 @@ from database import Game, UserGame
 import random
 from datetime import datetime
 from game.player import Player
+from sqlalchemy.exc import SQLAlchemyError
+import logging
+
 class GameManager:
     def __init__(self, code):
         self._max_players = 2
@@ -38,26 +41,39 @@ class GameManager:
         return len(self._players) == self._max_players
 
     def update_position(self, sid, x, y):
-        for player in self._players.values():
-            if player.sid == sid:
-                player.update_position(x, y)
-                player.update_distance(x)
-                return player
-        return None
+        try:
+            for player in self._players.values():
+                if player.sid == sid:
+                    player.update_position(x, y)
+                    player.update_distance(x)
+                    return player
+            return None
+
+        except Exception as e:
+            logging.error(f"[PLAYER ERROR] Failed to update position: {e}")
+            return None
 
     def get_chunk(self, offset):
-        if offset in self._chunk_cache:
-            return self._chunk_cache[offset]
+        try:
+            if offset in self._chunk_cache:
+                return self._chunk_cache[offset]
 
-        chunk, biome_name = self._generator.generate_valid_chunk(offset=offset, prev_chunk=self._chunk_cache.get(offset - 1, (None, None))[0])
+            chunk, biome_name = self._generator.generate_valid_chunk(
+                offset=offset,
+                prev_chunk=self._chunk_cache.get(offset - 1, (None, None))[0]
+            )
 
-        if chunk is None:
-            chunk = self._generator.generate_flat_chunk(offset=offset)
-            biome_name = "Plain"
+            if chunk is None:
+                chunk = self._generator.generate_flat_chunk()
+                biome_name = "Plain"
 
-        self._chunk_cache[offset] = chunk, biome_name
-        self._generator.increase_difficulty(self._difficulty_increase_per_chunk)
-        return chunk, biome_name
+            self._chunk_cache[offset] = chunk, biome_name
+            self._generator.increase_difficulty(self._difficulty_increase_per_chunk)
+            return chunk, biome_name
+
+        except Exception as e:
+            logging.error(f"[GENERATION ERROR] Failed to generate chunk: {e}")
+            return self._generator.generate_flat_chunk(), "Plain"
 
 
     def update_sid(self, user_id, new_sid):#updates a player's socket ID when they reconnect
@@ -84,18 +100,28 @@ class GameManager:
 
     def end_game(self, winner_user_id, reason):
         if not self._is_over:
-            opponent_disconnected = (reason == "opponent_left")
-            game_id = Game.add_game(
-                winnerID=winner_user_id,
-                start_time=self._start_time,
-                end_time=datetime.now(),
-                random_seed=self._random_seed,
-                opponent_disconnected=opponent_disconnected,
-            )
-            if game_id:
-                for user_id in self._players.keys():
-                    UserGame.add_user_game(user_id, game_id)
-            self._is_over = True
+            try:
+                opponent_disconnected = (reason == "opponent_left")
+
+                game_id = Game.add_game(
+                    winnerID=winner_user_id,
+                    start_time=self._start_time,
+                    end_time=datetime.now(),
+                    random_seed=self._random_seed,
+                    opponent_disconnected=opponent_disconnected,
+                )
+
+                if game_id:
+                    for user_id in self._players.keys():
+                        UserGame.add_user_game(user_id, game_id)
+
+                self._is_over = True
+
+            except SQLAlchemyError as e:
+                logging.error(f"[DB ERROR] Failed to end game: {e}")
+
+            except Exception as e:
+                logging.error(f"[UNKNOWN ERROR] end_game failed: {e}")
 
 
     def get_players_values(self):
