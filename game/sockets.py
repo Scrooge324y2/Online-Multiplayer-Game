@@ -61,7 +61,7 @@ def register_socket_events(socketio, games, matchmaking_queue):
         code = data['code']
 
         if code not in games:
-            games[code] = GameManager(code)
+            return
 
         session['game_code'] = code #stores to update later
         session.modified = True  # Force session to save

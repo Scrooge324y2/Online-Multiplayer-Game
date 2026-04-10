@@ -143,13 +143,9 @@ class TestDifficultyScaling(unittest.TestCase):
         self.assertGreater(gen.difficulty, before)
 
     def test_difficulty_capped_at_2(self):
-        # NOTE: increase_difficulty must use min() to enforce the cap.
-        # Fix in game/logic.py:
-        #   self.difficulty = min(2.0, self.difficulty + 0.02 * percent_increase)
         gen = ProceduralGenerator(seed=SEED)
         gen.difficulty = 1.99
         gen.increase_difficulty(100)
-        # After the production fix this assertion will pass.
         self.assertLessEqual(gen.difficulty, 2.0)
 
     def test_difficulty_does_not_increase_when_at_max(self):
@@ -249,9 +245,7 @@ class TestDetermineBiome(unittest.TestCase):
         self.assertIsInstance(biome, Biome)
 
     def test_all_biome_types_can_be_returned(self):
-        """Across a wide x range, at least two distinct biome types should appear.
-        Biome noise frequency is 0.01, so one full cycle spans ~600 units.
-        Sampling 0-100000 in steps of 10 guarantees broad coverage."""
+        """Across a wide x range, at least two distinct biome types should appear."""
         from game.logic import Biome
         found = set()
         for x in range(0, 100_000, 10):
@@ -336,7 +330,6 @@ class TestGenerateGaps(unittest.TestCase):
         """Offset 0 is always a flat starter chunk — gaps tested at offset > 0."""
         heights = [3] * CHUNK_WIDTH
         config = Plain().get_config(2.0)
-        # Gaps are valid at offset > 0; this just checks the function doesn't crash
         gaps = self.gen.generate_gaps(heights, CHUNK_WIDTH, 1, config)
         self.assertIsInstance(gaps, list)
 
@@ -357,7 +350,7 @@ class TestGenerateChunk(unittest.TestCase):
 
     def test_all_tiles_are_valid_values(self):
         chunk, _ = self.gen.generate_chunk(CHUNK_WIDTH, CHUNK_HEIGHT, offset=1)
-        valid = {0, 1, 2}
+        valid = {0, 1, 2, 3}
         for row in chunk:
             for tile in row:
                 self.assertIn(tile, valid)
@@ -375,12 +368,12 @@ class TestGenerateChunk(unittest.TestCase):
     def test_cave_chunks_have_ceiling(self):
         """Force a Cave biome by finding a global_x that maps to it."""
         gen = ProceduralGenerator(seed=SEED)
-        # Sweep until we hit a cave biome
+        # Sweep until we hit a Cave biome
         cave_offset = None
         for offset in range(1, 500):
             global_x = offset * CHUNK_WIDTH + CHUNK_WIDTH // 2
             biome = gen.determine_biome(global_x)
-            if isinstance(biome, Cave):
+            if isinstance(biome, Cave):  # Cave, not Caves
                 cave_offset = offset
                 break
 
@@ -389,9 +382,9 @@ class TestGenerateChunk(unittest.TestCase):
 
         gen2 = ProceduralGenerator(seed=SEED)
         chunk, biome = gen2.generate_chunk(CHUNK_WIDTH, CHUNK_HEIGHT, offset=cave_offset)
-        # A cave chunk should have at least one solid tile in its top rows (ceiling)
-        top_solid = any(chunk[y][x] == 3 for y in range(3) for x in range(CHUNK_WIDTH))
-        self.assertTrue(top_solid, "Cave chunk should have a ceiling")
+        # Cave ceiling tiles have value 3 (ObstacleType.CEILING), not 1
+        top_solid = any(chunk[y][x] == ObstacleType.CEILING for y in range(3) for x in range(CHUNK_WIDTH))
+        self.assertTrue(top_solid, "Cave chunk should have a ceiling (tile value 3)")
 
 
 
@@ -421,7 +414,7 @@ class TestGenerateValidChunk(unittest.TestCase):
 
     def test_valid_chunk_all_tiles_are_valid_values(self):
         chunk, _ = self.gen.generate_valid_chunk(offset=2)
-        valid = {0, 1, 2}
+        valid = {0, 1, 2, 3}
         for row in chunk:
             for tile in row:
                 self.assertIn(tile, valid)
@@ -429,7 +422,6 @@ class TestGenerateValidChunk(unittest.TestCase):
     def test_max_attempts_exceeded_falls_back_to_flat(self):
         """If max_attempts=1 and first chunk is invalid, should fall back gracefully."""
         gen = ProceduralGenerator(seed=SEED)
-        # max_attempts=1 means at attempt=1 it will fall back to flat
         chunk, biome = gen.generate_valid_chunk(offset=5, max_attempts=1)
         self.assertIsNotNone(chunk)
         self.assertEqual(len(chunk), CHUNK_HEIGHT)
@@ -525,13 +517,11 @@ class TestValidateChunkTraversable(unittest.TestCase):
     def test_impassable_boundary_fails_with_prev_chunk(self):
         """A wall too high to jump over at the chunk boundary should fail."""
         prev = self._make_walkable_chunk()
-        # Make the first column of current chunk a very tall wall
         curr = [[0] * CHUNK_WIDTH for _ in range(CHUNK_HEIGHT)]
         wall_height = PLAYER_MAX_JUMP_HEIGHT + 4
         for y in range(CHUNK_HEIGHT - 1, CHUNK_HEIGHT - 1 - wall_height, -1):
             if 0 <= y < CHUNK_HEIGHT:
                 curr[y][0] = 1
-        # Rest of ground
         for x in range(1, CHUNK_WIDTH):
             curr[CHUNK_HEIGHT - 1][x] = 1
         is_valid, _ = self.gen.validate_chunk_traversable(curr, CHUNK_WIDTH, CHUNK_HEIGHT, prev_chunk=prev)

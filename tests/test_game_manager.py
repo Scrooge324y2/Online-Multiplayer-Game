@@ -8,7 +8,7 @@ class TestGameManager(unittest.TestCase):
         """Create a fresh GameManager before each test"""
         self.game = GameManager("ABCD")
 
-    # --- add_player ---
+    # add_player
 
     def test_add_player_succeeds(self):
         result = self.game.add_player(user_id=1, sid="sid1", username="alice")
@@ -33,7 +33,7 @@ class TestGameManager(unittest.TestCase):
         self.assertFalse(result)  # returns False for duplicate
         self.assertEqual(self.game._players[1].sid, "new_sid")  # but sid is updated
 
-    # --- all_players_ready ---
+    # all_players_ready
 
     def test_all_players_ready_false_with_one_player(self):
         self.game.add_player(user_id=1, sid="sid1", username="alice")
@@ -44,7 +44,7 @@ class TestGameManager(unittest.TestCase):
         self.game.add_player(user_id=2, sid="sid2", username="bob")
         self.assertTrue(self.game.all_players_ready())
 
-    # --- mark_ready / all_ready / can_start ---
+    # mark_ready / all_ready / can_start
 
     def test_can_start_false_if_not_all_ready(self):
         self.game.add_player(user_id=1, sid="sid1", username="alice")
@@ -66,37 +66,40 @@ class TestGameManager(unittest.TestCase):
         self.game.start_game()
         self.assertFalse(self.game.can_start())
 
-    # --- check_winner ---
+    # check_winner
 
     def test_check_winner_no_winner_when_close(self):
         self.game.add_player(user_id=1, sid="sid1", username="alice")
         self.game.add_player(user_id=2, sid="sid2", username="bob")
         self.game._players[1].distance_travelled = 200
-        self.game._players[2].distance_travelled = 100  # gap = 100, under 300
+        self.game._players[2].distance_travelled = 100  # gap = 100, under win distance (8000)
         won, winner_id, reason = self.game.check_winner()
         self.assertFalse(won)
 
     def test_check_winner_returns_winner_at_threshold(self):
         self.game.add_player(user_id=1, sid="sid1", username="alice")
         self.game.add_player(user_id=2, sid="sid2", username="bob")
-        self.game._players[1].distance_travelled = 400
-        self.game._players[2].distance_travelled = 100  # gap = 300, exactly at threshold
+        self.game._players[1].distance_travelled = 8100
+        self.game._players[2].distance_travelled = 100  # gap = 8000, exactly at win distance
         won, winner_id, reason = self.game.check_winner()
         self.assertTrue(won)
         self.assertEqual(winner_id, 1)
 
-    # --- get_chunk / caching ---
+    # get_chunk / caching
 
     def test_get_chunk_returns_a_chunk(self):
-        chunk = self.game.get_chunk(0)
+        result = self.game.get_chunk(0)
+        self.assertIsNotNone(result)
+        chunk, biome_name = result
         self.assertIsNotNone(chunk)
+        self.assertIsInstance(biome_name, str)
 
     def test_get_chunk_caches_result(self):
-        chunk1 = self.game.get_chunk(0)
-        chunk2 = self.game.get_chunk(0)
-        self.assertIs(chunk1, chunk2)  # same object from cache
+        result1 = self.game.get_chunk(0)
+        result2 = self.game.get_chunk(0)
+        self.assertIs(result1, result2)  # same tuple from cache
 
-    # --- update_sid ---
+    # update_sid
 
     def test_update_sid_returns_true_for_valid_user(self):
         self.game.add_player(user_id=1, sid="old", username="alice")
@@ -108,7 +111,7 @@ class TestGameManager(unittest.TestCase):
         result = self.game.update_sid(99, "new_sid")
         self.assertFalse(result)
 
-    # --- get_opponent ---
+    # get_opponent
 
     def test_get_opponent_user_id(self):
         self.game.add_player(user_id=1, sid="sid1", username="alice")
@@ -125,7 +128,7 @@ class TestGameManager(unittest.TestCase):
         self.game.add_player(user_id=1, sid="sid1", username="alice")
         self.assertIsNone(self.game.get_opponent_user_id(1))
 
-    # --- is_over ---
+    # is_over
 
     def test_is_over_false_by_default(self):
         self.assertFalse(self.game.is_over())
@@ -134,7 +137,7 @@ class TestGameManager(unittest.TestCase):
         self.game.end_game(winner_user_id=1, reason="opponent_left")
         self.assertTrue(self.game.is_over())
 
-    # --- get_player_username ---
+    # get_player_username
 
     def test_get_player_username_returns_correct_name(self):
         self.game.add_player(user_id=1, sid="sid1", username="alice")
