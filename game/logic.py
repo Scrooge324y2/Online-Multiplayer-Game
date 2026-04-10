@@ -4,7 +4,7 @@ from collections import deque
 import time
 
 TILE_SIZE = 1 # Number of array units per tile, can be used for scaling if needed
-BIOME_CHUNK_LENGTH = 2  # how many chunks each biome lasts
+BIOME_CHUNK_LENGTH = 3  # how many chunks each biome lasts
 PLAYER_MAX_JUMP_HEIGHT = 3
 PLAYER_MAX_JUMP_DISTANCE = 4
 MAX_PLATFORM_HEIGHT_ABOVE = 6
