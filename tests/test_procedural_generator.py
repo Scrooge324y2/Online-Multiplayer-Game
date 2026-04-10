@@ -652,28 +652,6 @@ class TestGenerateCaveCeiling(unittest.TestCase):
 
 
 
-# count_obstacles
-
-
-class TestCountObstacles(unittest.TestCase):
-
-    def setUp(self):
-        self.gen = ProceduralGenerator(seed=SEED)
-
-    def test_empty_chunk_has_zero_obstacles(self):
-        chunk = [[0] * CHUNK_WIDTH for _ in range(CHUNK_HEIGHT)]
-        counts = self.gen.count_obstacles(chunk)
-        self.assertEqual(counts.get(2, 0), 0)
-
-    def test_counts_spikes_correctly(self):
-        chunk = [[0] * CHUNK_WIDTH for _ in range(CHUNK_HEIGHT)]
-        chunk[5][3] = ObstacleType.SPIKE
-        chunk[5][7] = ObstacleType.SPIKE
-        counts = self.gen.count_obstacles(chunk)
-        self.assertEqual(counts[2], 2)
-
-
-
 # Integration: full pipeline
 
 

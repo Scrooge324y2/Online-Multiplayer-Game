@@ -12,9 +12,6 @@ from dotenv import load_dotenv
 import os
 import secrets
 
-
-
-
 app = Flask(__name__)
 load_dotenv()
 app.secret_key = os.environ.get('SECRET_KEY', secrets.token_hex(32))

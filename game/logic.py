@@ -77,7 +77,6 @@ class ProceduralGenerator:
         self.seed = seed
         self.difficulty = 0.5 #goes from 0.5 o 2.0
         self.terrain_noise = OpenSimplex(seed)
-        self.biome_noise = OpenSimplex(seed + 1000)
         self.obstacle_noise = OpenSimplex(seed + 2000)
         self.rng = random.Random(seed)
 
@@ -299,15 +298,6 @@ class ProceduralGenerator:
 
         return chunk, biome
 
-    def count_obstacles(self, chunk):
-        counts = {2: 0, 3: 0}
-
-        for row in chunk:
-            for tile in row:
-                if tile in counts:
-                    counts[tile] += 1
-
-        return counts
 
     def place_spikes_from_visited(self, chunk, visited, biome_config, offset):
         self.rng.seed(self.seed + offset * 8000)
@@ -356,17 +346,14 @@ class ProceduralGenerator:
         if attempt == 0:
             saved_terrain_noise = self.terrain_noise
             saved_obstacle_noise = self.obstacle_noise
-            saved_biome_noise = self.biome_noise
         else:
             saved_terrain_noise = None
             saved_obstacle_noise = None
-            saved_biome_noise = None
 
         def restore_noise():
             if saved_terrain_noise is not None:
                 self.terrain_noise = saved_terrain_noise
                 self.obstacle_noise = saved_obstacle_noise
-                self.biome_noise = saved_biome_noise
 
 
         # Base case - max attempts reached, fall back to flat chunk
@@ -382,7 +369,6 @@ class ProceduralGenerator:
         else:
             self.terrain_noise = OpenSimplex(self.seed + attempt * 211)
             self.obstacle_noise = OpenSimplex(self.seed + 2000 + attempt * 317)
-            self.biome_noise = OpenSimplex(self.seed + 1000 + attempt * 113)
 
         chunk, biome = self.generate_chunk(width, height, offset)
         is_valid, reachable = self.validate_chunk_traversable(chunk, width, height, prev_chunk)

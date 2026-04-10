@@ -100,7 +100,6 @@ def register_socket_events(socketio, games, matchmaking_queue):
     def on_request_chunk(offset):
         code = session.get('game_code')
         if not code or code not in games:
-            print(f"ERROR: requestChunk - code={code}, exists={code in games if code else False}")
             return
         chunk, biome_name = games[code].get_chunk(offset=int(offset))
         emit('map', {'map': chunk, 'biome': biome_name})
@@ -117,7 +116,6 @@ def register_socket_events(socketio, games, matchmaking_queue):
         code = session.get('game_code')
 
         if not code or code not in games:
-            print(f"ERROR: playerMovement - code={code}, exists={code in games if code else False}")
             return
 
         game = games[code]

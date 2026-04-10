@@ -28,7 +28,6 @@ class GameManager:
 
     def add_player(self, user_id, sid, username):
         if user_id in self._players:
-            print(f"User {user_id} already in game")
             self._players[user_id].sid = sid
             return False
 
