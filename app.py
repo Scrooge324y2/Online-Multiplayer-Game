@@ -1,4 +1,3 @@
-import dotenv
 from flask import Flask, render_template, request, redirect, url_for, session, flash
 from flask_socketio import SocketIO
 from database import User
@@ -14,7 +13,10 @@ import secrets
 
 app = Flask(__name__)
 load_dotenv()
-app.secret_key = os.environ.get('SECRET_KEY', secrets.token_hex(32))
+app.secret_key = os.environ.get('SECRET_KEY')
+
+if not app.secret_key:
+    raise RuntimeError("SECRET_KEY is not configured")
 
 socketio = SocketIO(
     app,
