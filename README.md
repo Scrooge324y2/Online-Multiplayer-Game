@@ -3,7 +3,7 @@
 A real-time 2-player racing game for the browser. Both players run the same
 procedurally generated course, and the first to pull 200 tiles ahead of their
 opponent wins.
-
+![Gameplay screenshot](docs/gameplay_screenshot.png)
 ## Features
 
 - **Real-time multiplayer** with Flask-SocketIO: per-room game state, live
