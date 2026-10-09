@@ -42,8 +42,8 @@ Spikes slow you down, so dodge them.
 ## Running locally
 
 ```bash
-git clone <https://github.com/Scrooge324y2/Online-Multiplayer-Game.git>
-cd <Online-Multiplayer-Game>
+git clone https://github.com/Scrooge324y2/Online-Multiplayer-Game.git
+cd Online-Multiplayer-Game
 python -m venv .venv
 source .venv/bin/activate        # Windows: .venv\Scripts\activate
 pip install flask flask-socketio sqlalchemy bcrypt opensimplex python-dotenv
